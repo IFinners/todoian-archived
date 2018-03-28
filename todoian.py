@@ -14,18 +14,18 @@ def decide_action(command):
         add_task(task)
     
     elif command.startswith('rm '):
-        to_remove = command.lstrip('rm ')
+        to_remove = command[3:]
         if to_remove == "all":
             tasks.clear()
         else:
-            delete_task(to_remove)
+            delete_task(int(to_remove) - 1)
 
     elif command.startswith('d '):
-        task_num = int(command.lstrip('d ')) - 1
+        task_num = int(command[2:]) - 1
         complete_task(task_num)
 
     elif command.startswith('mv'):
-        numbers = command.lstrip('mv ').split(' ')
+        numbers = command[3:].split(' ')
         move_task(int(numbers[0]), int(numbers[1]))
     
     elif command == "undo" or command == "u":
