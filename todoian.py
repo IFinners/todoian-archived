@@ -4,6 +4,8 @@
 
 import sys
 
+from task_class import Task
+
 def decide_action(command):
     """Decides which action the argument requires."""
     if command.lower() == "list" or command.lower() == "ls":
@@ -16,7 +18,7 @@ def decide_action(command):
     elif command.startswith('rm '):
         to_remove = command[3:]
         if to_remove == "all":
-            tasks.clear()
+            task_data.clear()
         else:
             delete_task(int(to_remove) - 1)
 
@@ -40,20 +42,21 @@ def list_tasks():
     print()
     print("TODO:")
     print()
-    for num, task in enumerate(tasks, 1):
-        print(str(num) + ": " + task)
+    for num, task in enumerate(task_data, 1):
+        print(str(num) + ": " + task[0])
     print()
 
 
 def add_task(task):
     """Adds system argument task to the task list."""
-    tasks.append(task)
+    Task(task)
+    task_data.append([task, '', ''])
 
 
 def delete_task(task_num):
     """Removes a task from the task list."""
     deleted.append(task_num)
-    deleted.append(tasks.pop(task_num))
+    deleted.append(task_data.pop(task_num))
     print("Task deleted. Enter 'undo' as your command to "
             "restore this item to the list.")
 
@@ -61,25 +64,32 @@ def delete_task(task_num):
 def complete_task(task_num):
     """Moves a task to the completed list."""
     completed.append(task_num)
-    completed.append(tasks.pop(task_num))
+    completed.append(task_data.pop(task_num))
     print("Task marked as completed. Enter 'uncheck' as your command to "
             "restore this item to the list.")
               
 
 def undo_action(action):
     """Restores the last deleted or completed task to the task list."""
-    tasks.insert(int(action[-2]), action.pop(-1))
+    task_data.insert(int(action[-2]), action.pop(-1))
     del action[-1]
 
 
 def move_task(to_move, move_to):
     """Move a task to a new position in the todo list."""
-    tasks.insert(int(move_to) - 1, tasks.pop(int(to_move) - 1))
+    task_data.insert(int(move_to) - 1, task_data.pop(int(to_move) - 1))
 
 
 with open('tasks.txt') as f:
-    tasks = f.read().splitlines()
-    
+    tasks_info = f.read().splitlines()
+
+task_data = []
+for line in tasks_info:
+    info = line.split('|')
+    Task(info[0], [1], [2])
+    task_data.append(info)
+
+
 deleted = []
 completed = []
 
@@ -93,5 +103,5 @@ while True:
         decide_action(action)
 
 with open('tasks.txt', mode='w') as f:
-    for task in tasks:
-        f.write(task + '\n')
+    for task_info in task_data:
+        f.write('|'.join(task_info) + '\n')
