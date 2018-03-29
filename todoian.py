@@ -20,11 +20,11 @@ def decide_action(command):
         if to_remove == "all":
             task_data.clear()
         else:
-            delete_task(int(to_remove) - 1)
+            cache_task(deleted, int(to_remove) - 1)
 
     elif command.startswith('d '):
         task_num = int(command[2:]) - 1
-        complete_task(task_num)
+        cache_task(completed, task_num)
 
     elif command.startswith('mv'):
         numbers = command[3:].split(' ')
@@ -53,20 +53,18 @@ def add_task(task):
     task_data.append([task, '', ''])
 
 
-def delete_task(task_num):
+def cache_task(cache_list, task_num):
     """Removes a task from the task list."""
-    deleted.append(task_num)
-    deleted.append(task_data.pop(task_num))
-    print("Task deleted. Enter 'undo' as your command to "
-            "restore this item to the list.")
-
-
-def complete_task(task_num):
-    """Moves a task to the completed list."""
-    completed.append(task_num)
-    completed.append(task_data.pop(task_num))
-    print("Task marked as completed. Enter 'uncheck' as your command to "
-            "restore this item to the list.")
+    if cache_list == deleted:
+        fate = "deleted"
+        undo_com = "'undo' or 'u'"
+    elif cache_list == completed:
+        fate = "completed"
+        undo_com = "'uncheck' or 'uc'"
+    cache_list.append(task_num)
+    cache_list.append(task_data.pop(task_num))
+    print("Task {}. Enter {} as your command to "
+          "restore this item".format(fate, undo_com))
               
 
 def undo_action(action):
