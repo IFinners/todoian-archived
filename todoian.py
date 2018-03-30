@@ -10,10 +10,22 @@ from task_class import Task
 def decide_action(command):
     """Decides which action the argument requires."""
     if command.lower() == 'list' or command.lower() == 'ls':
-        list_tasks()
+        view_overdue()
+        view_today()
 
+    elif command.lower() == 'list today' or command.lower() == 'ls t':
+        view_today()
+
+    elif command.lower() == 'list overdue' or command.lower() == 'ls o':
+        view_overdue()
+    
+    elif command.lower() == 'list future' or command.lower() == 'ls f':
+        view_future()
+    
     elif command.lower() == 'list all' or command.lower() == 'ls a':
-        list_tasks(True)
+        view_overdue()
+        view_today()
+        view_future()
     
     elif command.startswith('a '):
         task = command[2:]
@@ -41,8 +53,8 @@ def decide_action(command):
         undo_action(completed)
 
 
-def list_tasks(view_all=None):
-    """Printtasks to the console either overdue and today's or all."""
+def view_overdue():
+    """Prints all overdue tasks to the terminal."""
     print()
     print("OVERDUE TASKS:")
     print()
@@ -50,7 +62,10 @@ def list_tasks(view_all=None):
         if task[1] < current_date:
             print("{}: {} [{}]".format(num, task[0], task[1]))
     print()
-    
+
+
+def view_today():
+    """Prints all of today's tasks to the terminal.."""
     print()
     print("TODAY's TASKS:")
     print()
@@ -59,14 +74,16 @@ def list_tasks(view_all=None):
             print("{}: {}".format(num, task[0]))
     print()
 
-    if view_all != None:
-        print()
-        print("FUTURE TASKS:")
-        print()
-        for num, task in enumerate(task_data, 1):
-            if task[1] > current_date:
-                print("{}: {} [{}]".format(num, task[0], task[1]))
-        print()
+
+def view_future():
+    """Prints all future tasks to the terminal.."""
+    print()
+    print("FUTURE TASKS:")
+    print()
+    for num, task in enumerate(task_data, 1):
+        if task[1] > current_date:
+            print("{}: {} [{}]".format(num, task[0], task[1]))
+    print()
 
 
 def add_task(task):
@@ -116,8 +133,6 @@ completed = []
 
 current_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
-list_tasks()
-print()
 while True:
     action = input("Enter you command here (or enter 'q' to quit): ")
     if action.lower() == "q":
