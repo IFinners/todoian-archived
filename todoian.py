@@ -10,16 +10,16 @@ from datetime import timedelta
 
 def decide_action(command):
     """Decides which action the argument requires."""
-    command_regex = re.search(r'^(\w*)\s?(.*)', command.lower())
+    command_regex = re.search(r'^(\w*)\s?(.*)', command)
     
-    if command_regex.group(1) == 'ls' or command_regex.group(1) == 'list':
-        if command_regex.group(2) == 't' or command_regex.group(2) == 'today':
+    if command_regex.group(1).lower() in ('ls','list'):
+        if command_regex.group(2).lower() in ('t', 'today'):
             view_today()
-        elif command_regex.group(2) == 'o' or command_regex.group(2) == 'overdue':
+        elif command_regex.group(2).lower() in ('o', 'overdue'):
             view_overdue()
-        elif command_regex.group(2) == 'f' or command_regex.group(2) == 'future':
+        elif command_regex.group(2).lower() in ('f', 'future'):
             view_future()
-        elif command_regex.group(2) == 'a' or command_regex.group(2) == 'all':
+        elif command_regex.group(2).lower() in ('a', 'all'):
             view_overdue()
             view_today()
             view_future()
@@ -27,31 +27,31 @@ def decide_action(command):
             view_overdue()
             view_today()
     
-    elif command_regex.group(1) == 'a' or command_regex.group(1) == 'add':
+    elif command_regex.group(1).lower() in ('a', 'add'):
         add_task(command_regex.group(2))
     
-    elif command_regex.group(1) == 'rm' or command_regex.group(1) == 'remove':
-        if command_regex.group(2) == "all":
+    elif command_regex.group(1).lower() in ('rm', 'remove', 'del'):
+        if command_regex.group(2).lower() == "all":
             task_data.clear()
         else:
             delete_task(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1) == 'd' or command_regex.group(1) == 'done':
+    elif command_regex.group(1).lower() in ('d', 'done'):
         complete_task(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1) == 'cd':
+    elif command_regex.group(1).lower() == 'cd':
         change_date(int(command_regex.group(2)) - 1)
     
-    elif command_regex.group(1) == 'ar':
+    elif command_regex.group(1).lower() == 'ar':
         add_repeat(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1) == 'rr':
+    elif command_regex.group(1).lower() == 'rr':
         remove_repeat(int(command_regex.group(2)) - 1)
 
-    elif command == "undo" or command == "u":
+    elif command.lower() in ('u', 'undo'):
         undo_action(deleted)
     
-    elif command == "uncheck" or command == "uc":
+    elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed)
 
 
