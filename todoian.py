@@ -5,7 +5,6 @@
 import sys
 from datetime import datetime
 
-from task_class import Task
 
 def decide_action(command):
     """Decides which action the argument requires."""
@@ -94,7 +93,6 @@ def view_future():
 
 def add_task(task):
     """Adds system argument task to the task list."""
-    Task(len(task_data) + 1, task, current_date)
     task_data.append([len(task_data) + 1, task, current_date, ''])
 
 
@@ -129,14 +127,12 @@ task_data = []
 temp_data.sort(key=lambda x: x[1])
 for num, task in enumerate(temp_data, 1):
     task_data.append([num, task[0], task[1], task[2]])
-    Task(num, task[0], task[1], task[2])
 temp_data.clear()
 
 deleted = []
 completed = []
 
 current_date = datetime.now().strftime('%Y-%m-%d')
-
 view_overdue()
 view_today()
 
