@@ -3,7 +3,7 @@
 """Todo list."""
 
 import sys
-import datetime
+from datetime import datetime
 
 from task_class import Task
 
@@ -49,17 +49,6 @@ def decide_action(command):
         undo_action(completed)
 
 
-def view_overdue():
-    """Prints all overdue tasks to the terminal."""
-    print()
-    print("OVERDUE TASKS:")
-    print()
-    for task in task_data:
-        if task[2] < current_date:
-            print("{}: {} [{}]".format(task[0], task[1], task[2]))
-    print()
-
-
 def view_today():
     """Prints all of today's tasks to the terminal.."""
     print()
@@ -71,6 +60,22 @@ def view_today():
     print()
 
 
+def view_overdue():
+    """Prints all overdue tasks to the terminal."""
+    print()
+    print("OVERDUE TASKS:")
+    print()
+    for task in task_data:
+        if task[2] < current_date:
+            over = ((datetime.strptime(current_date, '%Y-%m-%d')
+                          - datetime.strptime(task[2], '%Y-%m-%d')).days)
+            if over == 1:
+                print("{}: {} [Due Yesterday]".format(task[0], task[1]))
+            else:
+                print("{}: {} [Due {} Days Ago]".format(task[0], task[1], over))
+    print()
+
+
 def view_future():
     """Prints all future tasks to the terminal.."""
     print()
@@ -78,7 +83,12 @@ def view_future():
     print()
     for task in task_data:
         if task[2] > current_date:
-            print("{}: {} [{}]".format(task[0], task[1], task[2]))
+            until = ((datetime.strptime(task[2], '%Y-%m-%d')
+                          - datetime.strptime(current_date, '%Y-%m-%d')).days)
+            if until == 1:
+                print("{}: {} [Due Tommorow]".format(task[0], task[1]))
+            else:
+                print("{}: {} [Due in {} Days]".format(task[0], task[1], until))
     print()
 
 
@@ -125,7 +135,7 @@ temp_data.clear()
 deleted = []
 completed = []
 
-current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+current_date = datetime.now().strftime('%Y-%m-%d')
 
 view_overdue()
 view_today()
