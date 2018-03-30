@@ -4,6 +4,7 @@
 
 import sys
 from datetime import datetime
+from datetime import timedelta
 
 
 def decide_action(command):
@@ -35,11 +36,23 @@ def decide_action(command):
         if to_remove == "all":
             task_data.clear()
         else:
-            cache_task(deleted, int(to_remove) - 1)
+            delete_task(int(to_remove) - 1)
 
     elif command.startswith('d '):
         to_complete = int(command[2:]) - 1
-        cache_task(completed, int(to_complete))
+        complete_task(to_complete)
+
+    elif command.startswith('cd '):
+        to_change = int(command[3:]) - 1
+        change_date(to_change)
+    
+    elif command.startswith('ar '):
+        to_change = int(command[3:]) - 1
+        add_repeat(to_change)
+
+    elif command.startswith('rr '):
+        to_change = int(command[3:]) - 1
+        remove_repeat(to_change)
 
     elif command == "undo" or command == "u":
         undo_action(deleted)
@@ -96,22 +109,41 @@ def add_task(task):
     task_data.append([len(task_data) + 1, task, current_date, ''])
 
 
-def cache_task(cache_list, task_num):
+def delete_task(task_num):
     """Removes a task from the task list."""
-    if cache_list == deleted:
-        fate = "deleted"
-        undo_com = "'undo' or 'u'"
-    elif cache_list == completed:
-        fate = "completed"
-        undo_com = "'uncheck' or 'uc'"
-    cache_list.append(task_data.pop(task_num))
-    print("Task {}. Enter {} as your command to "
-          "restore this item".format(fate, undo_com))
-              
+    deleted.append(task_data.pop(task_num))
+    print("Task deleted. Enter 'undo' or 'u' as a command to restore this item.")
+
+def complete_task(task_num):
+    """Marks a task as complete."""
+    if task_data[task_num][3] != '':
+        old_date = datetime.strptime(task_data[task_num][2], '%Y-%m-%d')
+        new_date = old_date + timedelta(int(task_data[task_num][3]))
+        task_data[task_num][2] = datetime.strftime(new_date, '%Y-%m-%d')
+    else:
+        completed.append(task_data.pop(task_num))
 
 def undo_action(action):
     """Restores the last deleted or completed task to the task list."""
     task_data.insert(int(action[-1][0]), action.pop(-1))
+
+def change_date(task_num):
+    """Changes the due date of a task."""
+    print("Enter new due_date for {}: (YYYY-MM-DD)")
+    new_date = input()
+    task_data[task_num][2] = new_date
+
+
+def add_repeat(task_num):
+    """Flags a task with the repeat flag so it auto-renews on completion."""
+    step = input("How often would you like the task to be repeated (in days)? ")
+    task_data[task_num][3] = step
+    print(task_data[task_num][3])
+
+
+def remove_repeat(task_num):
+    """Removes the repeat flag from a task."""
+    task_data[task_num][3] = ''
 
 
 with open('tasks.txt') as f:
@@ -142,6 +174,7 @@ while True:
         break
     else:
         decide_action(action)
+        print()
 
 with open('tasks.txt', mode='w') as f:
     for task_info in task_data:
