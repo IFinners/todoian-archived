@@ -39,8 +39,8 @@ def decide_action(command):
             cache_task(deleted, int(to_remove) - 1)
 
     elif command.startswith('d '):
-        task_num = int(command[2:]) - 1
-        cache_task(completed, task_num)
+        to_complete = int(command[2:]) - 1
+        cache_task(completed, int(to_complete))
 
     elif command == "undo" or command == "u":
         undo_action(deleted)
@@ -96,7 +96,6 @@ def cache_task(cache_list, task_num):
     elif cache_list == completed:
         fate = "completed"
         undo_com = "'uncheck' or 'uc'"
-    cache_list.append(task_num)
     cache_list.append(task_data.pop(task_num))
     print("Task {}. Enter {} as your command to "
           "restore this item".format(fate, undo_com))
@@ -104,8 +103,7 @@ def cache_task(cache_list, task_num):
 
 def undo_action(action):
     """Restores the last deleted or completed task to the task list."""
-    task_data.insert(int(action[-2]), action.pop(-1))
-    del action[-1]
+    task_data.insert(int(action[-1][0]), action.pop(-1))
 
 
 with open('tasks.txt') as f:
@@ -128,6 +126,9 @@ deleted = []
 completed = []
 
 current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+
+view_overdue()
+view_today()
 
 while True:
     action = input("Enter you command here (or enter 'q' to quit): ")
