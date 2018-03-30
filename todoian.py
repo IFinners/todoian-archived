@@ -42,10 +42,6 @@ def decide_action(command):
         task_num = int(command[2:]) - 1
         cache_task(completed, task_num)
 
-    elif command.startswith('mv'):
-        numbers = command[3:].split(' ')
-        move_task(int(numbers[0]), int(numbers[1]))
-    
     elif command == "undo" or command == "u":
         undo_action(deleted)
     
@@ -67,7 +63,7 @@ def view_overdue():
 def view_today():
     """Prints all of today's tasks to the terminal.."""
     print()
-    print("TODAY's TASKS:")
+    print("TODAY'S TASKS:")
     print()
     for num, task in enumerate(task_data, 1):
         if task[1] == current_date:
@@ -110,11 +106,6 @@ def undo_action(action):
     """Restores the last deleted or completed task to the task list."""
     task_data.insert(int(action[-2]), action.pop(-1))
     del action[-1]
-
-
-def move_task(to_move, move_to):
-    """Move a task to a new position in the todo list."""
-    task_data.insert(int(move_to) - 1, task_data.pop(int(to_move) - 1))
 
 
 with open('tasks.txt') as f:
