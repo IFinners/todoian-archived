@@ -3,56 +3,50 @@
 """Todo list."""
 
 import sys
-from datetime import datetime
+import re
+from datetime import datetime as dt
 from datetime import timedelta
 
 
 def decide_action(command):
     """Decides which action the argument requires."""
-    if command.lower() == 'list' or command.lower() == 'ls':
-        view_overdue()
-        view_today()
-
-    elif command.lower() == 'list today' or command.lower() == 'ls t':
-        view_today()
-
-    elif command.lower() == 'list overdue' or command.lower() == 'ls o':
-        view_overdue()
+    command_regex = re.search(r'^(\w*)\s?(.*)', command.lower())
     
-    elif command.lower() == 'list future' or command.lower() == 'ls f':
-        view_future()
+    if command_regex.group(1) == 'ls' or command_regex.group(1) == 'list':
+        if command_regex.group(2) == 't' or command_regex.group(2) == 'today':
+            view_today()
+        elif command_regex.group(2) == 'o' or command_regex.group(2) == 'overdue':
+            view_overdue()
+        elif command_regex.group(2) == 'f' or command_regex.group(2) == 'future':
+            view_future()
+        elif command_regex.group(2) == 'a' or command_regex.group(2) == 'all':
+            view_overdue()
+            view_today()
+            view_future()
+        else:
+            view_overdue()
+            view_today()
     
-    elif command.lower() == 'list all' or command.lower() == 'ls a':
-        view_overdue()
-        view_today()
-        view_future()
+    elif command_regex.group(1) == 'a' or command_regex.group(1) == 'add':
+        add_task(command_regex.group(2))
     
-    elif command.startswith('a '):
-        task = command[2:]
-        add_task(task)
-    
-    elif command.startswith('rm '):
-        to_remove = command[3:]
-        if to_remove == "all":
+    elif command_regex.group(1) == 'rm' or command_regex.group(1) == 'remove':
+        if command_regex.group(2) == "all":
             task_data.clear()
         else:
-            delete_task(int(to_remove) - 1)
+            delete_task(int(command_regex.group(2)) - 1)
 
-    elif command.startswith('d '):
-        to_complete = int(command[2:]) - 1
-        complete_task(to_complete)
+    elif command_regex.group(1) == 'd' or command_regex.group(1) == 'done':
+        complete_task(int(command_regex.group(2)) - 1)
 
-    elif command.startswith('cd '):
-        to_change = int(command[3:]) - 1
-        change_date(to_change)
+    elif command_regex.group(1) == 'cd':
+        change_date(int(command_regex.group(2)) - 1)
     
-    elif command.startswith('ar '):
-        to_change = int(command[3:]) - 1
-        add_repeat(to_change)
+    elif command_regex.group(1) == 'ar':
+        add_repeat(int(command_regex.group(2)) - 1)
 
-    elif command.startswith('rr '):
-        to_change = int(command[3:]) - 1
-        remove_repeat(to_change)
+    elif command_regex.group(1) == 'rr':
+        remove_repeat(int(command_regex.group(2)) - 1)
 
     elif command == "undo" or command == "u":
         undo_action(deleted)
@@ -79,8 +73,8 @@ def view_overdue():
     print()
     for task in task_data:
         if task[2] < current_date:
-            over = ((datetime.strptime(current_date, '%Y-%m-%d')
-                          - datetime.strptime(task[2], '%Y-%m-%d')).days)
+            over = ((dt.strptime(current_date, '%Y-%m-%d')
+                          - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
                 print("{}: {} [Due Yesterday]".format(task[0], task[1]))
             else:
@@ -95,8 +89,8 @@ def view_future():
     print()
     for task in task_data:
         if task[2] > current_date:
-            until = ((datetime.strptime(task[2], '%Y-%m-%d')
-                          - datetime.strptime(current_date, '%Y-%m-%d')).days)
+            until = ((dt.strptime(task[2], '%Y-%m-%d')
+                          - dt.strptime(current_date, '%Y-%m-%d')).days)
             if until == 1:
                 print("{}: {} [Due Tommorow]".format(task[0], task[1]))
             else:
@@ -104,9 +98,20 @@ def view_future():
     print()
 
 
-def add_task(task):
+def add_task(task_details):
     """Adds system argument task to the task list."""
-    task_data.append([len(task_data) + 1, task, current_date, ''])
+    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w)?', task_details)
+    task = add_regex.group(1)
+    print(task)
+    if add_regex.group(2):
+        date = add_regex.group(2)
+    else:
+        date = current_date
+    if add_regex.group(3):
+        repeat = int(add_regex.group(3))
+    else:
+        repeat = ''
+    task_data.append([len(task_data) + 1, task, date, repeat])
 
 
 def delete_task(task_num):
@@ -117,9 +122,9 @@ def delete_task(task_num):
 def complete_task(task_num):
     """Marks a task as complete."""
     if task_data[task_num][3] != '':
-        old_date = datetime.strptime(task_data[task_num][2], '%Y-%m-%d')
+        old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
         new_date = old_date + timedelta(int(task_data[task_num][3]))
-        task_data[task_num][2] = datetime.strftime(new_date, '%Y-%m-%d')
+        task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
     else:
         completed.append(task_data.pop(task_num))
 
@@ -149,7 +154,7 @@ def remove_repeat(task_num):
 with open('tasks.txt') as f:
     tasks_info = f.read().splitlines()
 
-# Temp so it can be sorted by date and number used for creating class member.
+# Temp so it can be sorted by date and number before being appended to list.
 temp_data = []
 for line in tasks_info:
     info = line.split('|')
@@ -164,7 +169,7 @@ temp_data.clear()
 deleted = []
 completed = []
 
-current_date = datetime.now().strftime('%Y-%m-%d')
+current_date = dt.now().strftime('%Y-%m-%d')
 view_overdue()
 view_today()
 
