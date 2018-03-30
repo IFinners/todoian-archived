@@ -3,13 +3,17 @@
 """Todo list."""
 
 import sys
+import datetime
 
 from task_class import Task
 
 def decide_action(command):
     """Decides which action the argument requires."""
-    if command.lower() == "list" or command.lower() == "ls":
+    if command.lower() == 'list' or command.lower() == 'ls':
         list_tasks()
+
+    elif command.lower() == 'list all' or command.lower() == 'ls a':
+        list_tasks(True)
     
     elif command.startswith('a '):
         task = command[2:]
@@ -37,20 +41,38 @@ def decide_action(command):
         undo_action(completed)
 
 
-def list_tasks():
-    """Prints all current tasks to the console."""
+def list_tasks(view_all=None):
+    """Printtasks to the console either overdue and today's or all."""
     print()
-    print("TODO:")
+    print("OVERDUE TASKS:")
     print()
     for num, task in enumerate(task_data, 1):
-        print(str(num) + ": " + task[0])
+        if task[1] < current_date:
+            print("{}: {} [{}]".format(num, task[0], task[1]))
     print()
+    
+    print()
+    print("TODAY's TASKS:")
+    print()
+    for num, task in enumerate(task_data, 1):
+        if task[1] == current_date:
+            print("{}: {}".format(num, task[0]))
+    print()
+
+    if view_all != None:
+        print()
+        print("FUTURE TASKS:")
+        print()
+        for num, task in enumerate(task_data, 1):
+            if task[1] > current_date:
+                print("{}: {} [{}]".format(num, task[0], task[1]))
+        print()
 
 
 def add_task(task):
     """Adds system argument task to the task list."""
-    Task(task)
-    task_data.append([task, '', ''])
+    Task(task, current_date)
+    task_data.append([task, current_date, ''])
 
 
 def cache_task(cache_list, task_num):
@@ -86,10 +108,13 @@ for line in tasks_info:
     info = line.split('|')
     Task(info[0], [1], [2])
     task_data.append(info)
+task_data.sort(key=lambda x: x[1])
 
 
 deleted = []
 completed = []
+
+current_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
 list_tasks()
 print()
