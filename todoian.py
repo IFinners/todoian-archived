@@ -54,9 +54,9 @@ def view_overdue():
     print()
     print("OVERDUE TASKS:")
     print()
-    for num, task in enumerate(task_data, 1):
-        if task[1] < current_date:
-            print("{}: {} [{}]".format(num, task[0], task[1]))
+    for task in task_data:
+        if task[2] < current_date:
+            print("{}: {} [{}]".format(task[0], task[1], task[2]))
     print()
 
 
@@ -65,9 +65,9 @@ def view_today():
     print()
     print("TODAY'S TASKS:")
     print()
-    for num, task in enumerate(task_data, 1):
-        if task[1] == current_date:
-            print("{}: {}".format(num, task[0]))
+    for task in task_data:
+        if task[2] == current_date:
+            print("{}: {}".format(task[0], task[1]))
     print()
 
 
@@ -76,16 +76,16 @@ def view_future():
     print()
     print("FUTURE TASKS:")
     print()
-    for num, task in enumerate(task_data, 1):
-        if task[1] > current_date:
-            print("{}: {} [{}]".format(num, task[0], task[1]))
+    for task in task_data:
+        if task[2] > current_date:
+            print("{}: {} [{}]".format(task[0], task[1], task[2]))
     print()
 
 
 def add_task(task):
     """Adds system argument task to the task list."""
-    Task(task, current_date)
-    task_data.append([task, current_date, ''])
+    Task(len(task_data) + 1, task, current_date)
+    task_data.append([len(task_data) + 1, task, current_date, ''])
 
 
 def cache_task(cache_list, task_num):
@@ -111,13 +111,18 @@ def undo_action(action):
 with open('tasks.txt') as f:
     tasks_info = f.read().splitlines()
 
-task_data = []
+# Temp so it can be sorted by date and number used for creating class member.
+temp_data = []
 for line in tasks_info:
     info = line.split('|')
-    Task(info[0], [1], [2])
-    task_data.append(info)
-task_data.sort(key=lambda x: x[1])
+    temp_data.append(info)
 
+task_data = []
+temp_data.sort(key=lambda x: x[1])
+for num, task in enumerate(temp_data, 1):
+    task_data.append([num, task[0], task[1], task[2]])
+    Task(num, task[0], task[1], task[2])
+temp_data.clear()
 
 deleted = []
 completed = []
@@ -133,4 +138,4 @@ while True:
 
 with open('tasks.txt', mode='w') as f:
     for task_info in task_data:
-        f.write('|'.join(task_info) + '\n')
+        f.write("{}|{}|{}\n".format(task_info[1], task_info[2], task_info[3]))

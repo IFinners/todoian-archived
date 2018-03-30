@@ -2,14 +2,13 @@
 
 class Task:
     """Class for all tasks."""
-    num_tasks = 0
 
-    def __init__(self, name, due_date='', additional_info=''):
+    def __init__(self, num, task, due_date='', additional_info=''):
         """Initialise the Task class."""
-        self.name = name
+        self.num = num
+        self.task = task
         self.due_date = due_date
         self.additional_info = additional_info
-        Task.num_tasks += 1
 
     def set_date(self, date):
         """Sets the due date for the task."""
@@ -21,5 +20,6 @@ class Task:
 
     def display_additional(self):
         """Displays a tasks additional information."""
-        print("Additional Information for '" + self.name + "':")
+        print("Additional Information for '" + self.task + "':")
+        print()
         print(self.additional_info)
