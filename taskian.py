@@ -2,7 +2,6 @@
 
 """Todo list."""
 
-import sys
 import re
 from datetime import datetime as dt
 from datetime import timedelta
@@ -40,7 +39,6 @@ def decide_action(command):
         complete_task(int(command_regex.group(2)) - 1)
 
     elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
-        print(command_regex.group(2))
         edit_desc(command_regex.group(2))
     
     elif command_regex.group(1).lower() == 'cd':
@@ -52,11 +50,14 @@ def decide_action(command):
     elif command_regex.group(1).lower() == 'rr':
         remove_repeat(int(command_regex.group(2)) - 1)
 
+    elif command_regex.group(1).lower() in ('s', 'sub', 'subtask'):
+        add_sub(command_regex.group(2))
+        
     elif command.lower() in ('u', 'undo'):
-        undo_action(deleted)
+        undo_action(deleted_cache)
     
     elif command.lower() in ('uc', 'uncheck'):
-        undo_action(completed)
+        undo_action(completed_cache)
 
 
 def view_today():
@@ -67,7 +68,10 @@ def view_today():
     empty = True
     for task in task_data:
         if task[2] == current_date:
-            print("    {}: {}".format(task[0], task[1]))
+            print("    {}| {}".format(task[0], task[1]))
+            # Check for Subtasks
+            if task[4]:
+                print_sub(int(task[0] - 1))
             empty = False
     if empty:
         print("    No Tasks Found")
@@ -85,9 +89,12 @@ def view_overdue():
             over = ((dt.strptime(current_date, '%Y-%m-%d')
                           - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
-                print("    {}: {} [Due Yesterday]".format(task[0], task[1]))
+                print("    {}| {} [Due Yesterday]".format(task[0], task[1]))
             else:
-                print("    {}: {} [Due {} Days Ago]".format(task[0], task[1], over))
+                print("    {}| {} [Due {} Days Ago]".format(task[0], task[1], over))
+            # Check for Subtasks
+            if task[4]:
+                print_sub(int(task[0] - 1))
             empty = False
     if empty:
         print("    No Tasks Found")
@@ -105,9 +112,12 @@ def view_future():
             until = ((dt.strptime(task[2], '%Y-%m-%d')
                           - dt.strptime(current_date, '%Y-%m-%d')).days)
             if until == 1:
-                print("    {}: {} [Due Tommorow]".format(task[0], task[1]))
+                print("    {}| {} [Due Tommorow]".format(task[0], task[1]))
             else:
-                print("    {}: {} [Due in {} Days]".format(task[0], task[1], until))
+                print("    {}| {} [Due in {} Days]".format(task[0], task[1], until))
+            # Check for Subtasks
+            if task[4]:
+                print_sub(int(task[0] - 1))
             empty = False
     if empty:
         print("    No Tasks Found")
@@ -126,15 +136,17 @@ def add_task(command_extra):
         repeat = int(add_regex.group(3))
     else:
         repeat = ''
-    task_data.append([len(task_data) + 1, task, date, repeat])
+    task_data.append([len(task_data) + 1, task, date, repeat, ''])
     update_order()
 
 
 def delete_task(task_num):
     """Removes a task from the task list."""
-    deleted.append(task_data.pop(task_num))
+    deleted_cache.append(task_data.pop(task_num))
     update_order()
     print("  Task deleted. Enter 'undo' or 'u' to restore.")
+    view_overdue()
+    view_today()
 
 def complete_task(task_num):
     """Marks a task as complete."""
@@ -143,8 +155,11 @@ def complete_task(task_num):
         new_date = old_date + timedelta(int(task_data[task_num][3]))
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
     else:
-        completed.append(task_data.pop(task_num))
+        completed_cache.append(task_data.pop(task_num))
+    print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
     update_order()
+    view_overdue()
+    view_today()
 
 
 def edit_desc(command_extra):
@@ -156,18 +171,19 @@ def edit_desc(command_extra):
         task_data[task_num][1] = edit_regex.group(2)
     else:
         print("  Enter the new task description below:")
-        new_desc = input()
+        new_desc = input("  ")
         task_data[task_num][1] = new_desc
 
 
 def undo_action(action):
     """Restores the last deleted or completed task to the task list."""
-    task_data.insert(int(action[-1][0]), action.pop(-1))
+    task_data.append(action.pop(-1))
+    update_order()
 
 def change_date(task_num):
     """Changes the due date of a task."""
     print("  Enter new due_date for {}: (YYYY-MM-DD)")
-    new_date = input()
+    new_date = input("  ")
     task_data[task_num][2] = new_date
     update_order()
 
@@ -193,6 +209,26 @@ def update_order():
         count += 1
 
 
+def add_sub(command_extra):
+    """Add subtask to a task."""
+    sub_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    task_num = int(sub_regex.group(1)) - 1
+    subtask = sub_regex.group(2)
+    if not subtask:
+        print("Enter Subtask:")
+        subtask = input()
+    if task_data[task_num][4] == '':
+        task_data[task_num][4] = [subtask]
+    else:
+        task_data[task_num][4].append(subtask)
+
+
+def print_sub(task_num):
+    for subtask in task_data[task_num][4]:
+        print("        +) {}".format(subtask))
+    print()
+
+
 # A dictionary of ANSI escapse sequences for font effects.
 font_dict = {
    'blue':  '\033[94m',
@@ -208,20 +244,27 @@ with open('tasks.txt') as f:
 
 task_data = []
 for num, line in enumerate(tasks_info, 1):
-    info = line.split('|')
+    info = line.split('|+|')
     data_list = [num]
-    for data_chunk in info:
-        data_list.append(data_chunk)
+    data_list.append(info[0])
+    data_list.append(info[1])
+    data_list.append(info[2])
+    # Subtask detection and parsing
+    if info[3] != '':
+        sub_list = info[3].split('+|+')
+    else:
+        sub_list = ''
+    data_list.append(sub_list)
     task_data.append(data_list)
 update_order()
 
-
-deleted = []
-completed = []
+deleted_cache = []
+completed_cache = []
 
 current_date = dt.now().strftime('%Y-%m-%d')
 view_overdue()
 view_today()
+print('\n')
 
 while True:
     action = input("  ENTER COMMAND ('q' to quit): ")
@@ -229,9 +272,9 @@ while True:
         break
     else:
         decide_action(action)
-        print()
-        print()
+        print('\n')
 
 with open('tasks.txt', mode='w') as f:
     for task_info in task_data:
-        f.write("{}|{}|{}\n".format(task_info[1], task_info[2], task_info[3]))
+        f.write("{}|+|{}|+|{}|+|{}\n".format(task_info[1], task_info[2],
+                task_info[3], '+|+'.join(task_info[4])))
