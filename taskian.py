@@ -45,7 +45,7 @@ def decide_action(command):
         change_date(int(command_regex.group(2)) - 1)
     
     elif command_regex.group(1).lower() == 'ar':
-        add_repeat(int(command_regex.group(2)) - 1)
+        add_repeat(command_regex.group(2))
 
     elif command_regex.group(1).lower() == 'rr':
         remove_repeat(int(command_regex.group(2)) - 1)
@@ -145,8 +145,6 @@ def delete_task(task_num):
     deleted_cache.append(task_data.pop(task_num))
     update_order()
     print("  Task deleted. Enter 'undo' or 'u' to restore.")
-    view_overdue()
-    view_today()
 
 def complete_task(task_num):
     """Marks a task as complete."""
@@ -158,8 +156,6 @@ def complete_task(task_num):
         completed_cache.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
     update_order()
-    view_overdue()
-    view_today()
 
 
 def edit_desc(command_extra):
@@ -188,11 +184,14 @@ def change_date(task_num):
     update_order()
 
 
-def add_repeat(task_num):
+def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
-    step = input("  How often would you like the task to be repeated (in days)? ")
-    task_data[task_num][3] = step
-    print(task_data[task_num][3])
+    repeat_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    if repeat_regex.group(2):
+        step = repeat_regex.group(2)
+    else:
+        step = input("  Enter how many days until the task should repeat: ")
+    task_data[int(repeat_regex.group(1)) - 1][3] = step
 
 
 def remove_repeat(task_num):
@@ -273,6 +272,9 @@ while True:
     else:
         decide_action(action)
         print('\n')
+        if 'ls' not in action:
+            view_overdue()
+            view_today()
 
 with open('tasks.txt', mode='w') as f:
     for task_info in task_data:
