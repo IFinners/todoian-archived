@@ -116,11 +116,13 @@ def add_task(command_extra):
     else:
         repeat = ''
     task_data.append([len(task_data) + 1, task, date, repeat])
+    update_order()
 
 
 def delete_task(task_num):
     """Removes a task from the task list."""
     deleted.append(task_data.pop(task_num))
+    update_order()
     print("Task deleted. Enter 'undo' or 'u' as a command to restore this item.")
 
 def complete_task(task_num):
@@ -131,6 +133,7 @@ def complete_task(task_num):
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
     else:
         completed.append(task_data.pop(task_num))
+    update_order()
 
 
 def edit_desc(command_extra):
@@ -155,6 +158,7 @@ def change_date(task_num):
     print("Enter new due_date for {}: (YYYY-MM-DD)")
     new_date = input()
     task_data[task_num][2] = new_date
+    update_order()
 
 
 def add_repeat(task_num):
@@ -169,20 +173,27 @@ def remove_repeat(task_num):
     task_data[task_num][3] = ''
 
 
+def update_order():
+    """Update the numbering of the tasks."""
+    task_data.sort(key=lambda x: x[2])
+    count = 1
+    for task in task_data:
+        task[0] = count
+        count += 1
+
+
 with open('tasks.txt') as f:
     tasks_info = f.read().splitlines()
 
-# Temp so it can be sorted by date and number before being appended to list.
-temp_data = []
-for line in tasks_info:
-    info = line.split('|')
-    temp_data.append(info)
-
 task_data = []
-temp_data.sort(key=lambda x: x[1])
-for num, task in enumerate(temp_data, 1):
-    task_data.append([num, task[0], task[1], task[2]])
-temp_data.clear()
+for num, line in enumerate(tasks_info, 1):
+    info = line.split('|')
+    data_list = [num]
+    for data_chunk in info:
+        data_list.append(data_chunk)
+    task_data.append(data_list)
+update_order()
+
 
 deleted = []
 completed = []
