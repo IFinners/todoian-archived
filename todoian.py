@@ -39,6 +39,10 @@ def decide_action(command):
     elif command_regex.group(1).lower() in ('d', 'done'):
         complete_task(int(command_regex.group(2)) - 1)
 
+    elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
+        print(command_regex.group(2))
+        edit_desc(command_regex.group(2))
+    
     elif command_regex.group(1).lower() == 'cd':
         change_date(int(command_regex.group(2)) - 1)
     
@@ -98,9 +102,9 @@ def view_future():
     print()
 
 
-def add_task(task_details):
+def add_task(command_extra):
     """Adds system argument task to the task list."""
-    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w)?', task_details)
+    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w)?', command_extra)
     task = add_regex.group(1)
     print(task)
     if add_regex.group(2):
@@ -127,6 +131,20 @@ def complete_task(task_num):
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
     else:
         completed.append(task_data.pop(task_num))
+
+
+def edit_desc(command_extra):
+    """Updates a task's description."""
+    edit_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    task_num = int(edit_regex.group(1)) - 1
+    print("Editing: '{}'".format(task_data[task_num][1]))
+    if edit_regex.group(2):
+        task_data[task_num][1] = edit_regex.group(2)
+    else:
+        print("Enter the new task description below:")
+        new_desc = input()
+        task_data[task_num][1] = new_desc
+
 
 def undo_action(action):
     """Restores the last deleted or completed task to the task list."""
