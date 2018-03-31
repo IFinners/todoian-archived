@@ -62,43 +62,55 @@ def decide_action(command):
 def view_today():
     """Prints all of today's tasks to the terminal.."""
     print()
-    print("TODAY'S TASKS:")
-    print()
+    print('  ' + font_dict['green'] + font_dict['under'] + "TODAY'S TASKS"
+          + font_dict['end'])
+    empty = True
     for task in task_data:
         if task[2] == current_date:
-            print("{}: {}".format(task[0], task[1]))
+            print("    {}: {}".format(task[0], task[1]))
+            empty = False
+    if empty:
+        print("    No Tasks Found")
     print()
 
 
 def view_overdue():
     """Prints all overdue tasks to the terminal."""
     print()
-    print("OVERDUE TASKS:")
-    print()
+    print('  ' + font_dict['red'] + font_dict['under'] + "OVERDUE TASKS"
+          + font_dict['end'])
+    empty = True
     for task in task_data:
         if task[2] < current_date:
             over = ((dt.strptime(current_date, '%Y-%m-%d')
                           - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
-                print("{}: {} [Due Yesterday]".format(task[0], task[1]))
+                print("    {}: {} [Due Yesterday]".format(task[0], task[1]))
             else:
-                print("{}: {} [Due {} Days Ago]".format(task[0], task[1], over))
+                print("    {}: {} [Due {} Days Ago]".format(task[0], task[1], over))
+            empty = False
+    if empty:
+        print("    No Tasks Found")
     print()
 
 
 def view_future():
     """Prints all future tasks to the terminal.."""
     print()
-    print("FUTURE TASKS:")
-    print()
+    print('  ' + font_dict['blue'] + font_dict['under'] + "FUTURE TASKS"
+          + font_dict['end'])
+    empty = True
     for task in task_data:
         if task[2] > current_date:
             until = ((dt.strptime(task[2], '%Y-%m-%d')
                           - dt.strptime(current_date, '%Y-%m-%d')).days)
             if until == 1:
-                print("{}: {} [Due Tommorow]".format(task[0], task[1]))
+                print("    {}: {} [Due Tommorow]".format(task[0], task[1]))
             else:
-                print("{}: {} [Due in {} Days]".format(task[0], task[1], until))
+                print("    {}: {} [Due in {} Days]".format(task[0], task[1], until))
+            empty = False
+    if empty:
+        print("    No Tasks Found")
     print()
 
 
@@ -106,7 +118,6 @@ def add_task(command_extra):
     """Adds system argument task to the task list."""
     add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w)?', command_extra)
     task = add_regex.group(1)
-    print(task)
     if add_regex.group(2):
         date = add_regex.group(2)
     else:
@@ -123,7 +134,7 @@ def delete_task(task_num):
     """Removes a task from the task list."""
     deleted.append(task_data.pop(task_num))
     update_order()
-    print("Task deleted. Enter 'undo' or 'u' as a command to restore this item.")
+    print("  Task deleted. Enter 'undo' or 'u' to restore.")
 
 def complete_task(task_num):
     """Marks a task as complete."""
@@ -140,11 +151,11 @@ def edit_desc(command_extra):
     """Updates a task's description."""
     edit_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
     task_num = int(edit_regex.group(1)) - 1
-    print("Editing: '{}'".format(task_data[task_num][1]))
+    print("  Editing: '{}'".format(task_data[task_num][1]))
     if edit_regex.group(2):
         task_data[task_num][1] = edit_regex.group(2)
     else:
-        print("Enter the new task description below:")
+        print("  Enter the new task description below:")
         new_desc = input()
         task_data[task_num][1] = new_desc
 
@@ -155,7 +166,7 @@ def undo_action(action):
 
 def change_date(task_num):
     """Changes the due date of a task."""
-    print("Enter new due_date for {}: (YYYY-MM-DD)")
+    print("  Enter new due_date for {}: (YYYY-MM-DD)")
     new_date = input()
     task_data[task_num][2] = new_date
     update_order()
@@ -163,7 +174,7 @@ def change_date(task_num):
 
 def add_repeat(task_num):
     """Flags a task with the repeat flag so it auto-renews on completion."""
-    step = input("How often would you like the task to be repeated (in days)? ")
+    step = input("  How often would you like the task to be repeated (in days)? ")
     task_data[task_num][3] = step
     print(task_data[task_num][3])
 
@@ -181,6 +192,16 @@ def update_order():
         task[0] = count
         count += 1
 
+
+# A dictionary of ANSI escapse sequences for font effects.
+font_dict = {
+   'blue':  '\033[94m',
+   'green':  '\033[92m',
+   'red':  '\033[91m',
+   'bold': '\033[1m',
+   'under':  '\033[4m',
+   'end':  '\033[0m',
+}
 
 with open('tasks.txt') as f:
     tasks_info = f.read().splitlines()
@@ -203,11 +224,12 @@ view_overdue()
 view_today()
 
 while True:
-    action = input("Enter you command here (or enter 'q' to quit): ")
+    action = input("  ENTER COMMAND ('q' to quit): ")
     if action.lower() == "q":
         break
     else:
         decide_action(action)
+        print()
         print()
 
 with open('tasks.txt', mode='w') as f:
