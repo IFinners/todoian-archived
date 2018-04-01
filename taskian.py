@@ -64,6 +64,9 @@ def decide_action(command):
     
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_cache)
+    
+    elif command_regex.group(1).lower() == 'save':
+        save_changes()
 
 
 def view_today():
@@ -274,6 +277,14 @@ def strike_text(text):
     return striked
 
 
+def save_changes():
+    """Writes changes to file."""
+    with open('tasks.txt', mode='w') as f:
+        for task_info in task_data:
+            f.write("{}|+|{}|+|{}|+|{}\n".format(task_info[1], task_info[2],
+                    task_info[3], '+|+'.join(task_info[4])))
+
+
 # A dictionary of ANSI escapse sequences for font effects.
 font_dict = {
    'blue':  '\033[94m',
@@ -322,7 +333,4 @@ while True:
             view_overdue()
             view_today()
 
-with open('tasks.txt', mode='w') as f:
-    for task_info in task_data:
-        f.write("{}|+|{}|+|{}|+|{}\n".format(task_info[1], task_info[2],
-                task_info[3], '+|+'.join(task_info[4])))
+save_changes()
