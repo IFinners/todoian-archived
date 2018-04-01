@@ -23,13 +23,12 @@ def decide_action(command):
             view_today()
             view_future()
         else:
-            view_overdue()
-            view_today()
+            smart_display()
     
     elif command_regex.group(1).lower() in ('a', 'add'):
         add_task(command_regex.group(2))
     
-    elif command_regex.group(1).lower() in ('rm', 'remove', 'del'):
+    elif command_regex.group(1).lower() in ('rm', 'remove'):
         if command_regex.group(2).lower() == "all":
             task_data.clear()
         else:
@@ -41,13 +40,13 @@ def decide_action(command):
     elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
     
-    elif command_regex.group(1).lower() == 'cd':
+    elif command_regex.group(1).lower() in ('cd', 'change date'):
         change_date(int(command_regex.group(2)) - 1)
     
-    elif command_regex.group(1).lower() == 'ar':
+    elif command_regex.group(1).lower() in ('ar', 'add repeat'):
         add_repeat(command_regex.group(2))
 
-    elif command_regex.group(1).lower() == 'rr':
+    elif command_regex.group(1).lower() in ('rr', 'remove repeat'):
         remove_repeat(int(command_regex.group(2)) - 1)
 
     elif command_regex.group(1).lower() in ('s', 'sub', 'subtask'):
@@ -56,7 +55,7 @@ def decide_action(command):
     elif command_regex.group(1).lower() in ('cs', 'comp subtask'):
         complete_sub(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('ds', 'rs', 'rm sub', 'del subtask'):
+    elif command_regex.group(1).lower() in ('rs', 'rm sub', 'remove subtask'):
         delete_sub(command_regex.group(2))
         
     elif command.lower() in ('u', 'undo'):
@@ -284,6 +283,14 @@ def save_changes():
             f.write("{}|+|{}|+|{}|+|{}\n".format(task_info[1], task_info[2],
                     task_info[3], '+|+'.join(task_info[4])))
 
+def smart_display():
+    """."""
+    if task_data[0][2] < current_date:
+        view_overdue()
+    view_today()
+    if task_data[-1][2] > current_date:
+        view_future()
+
 
 # A dictionary of ANSI escapse sequences for font effects.
 font_dict = {
@@ -298,6 +305,7 @@ font_dict = {
 with open('tasks.txt') as f:
     tasks_info = f.read().splitlines()
 
+# Saved data parsing
 task_data = []
 for num, line in enumerate(tasks_info, 1):
     info = line.split('|+|')
@@ -318,8 +326,9 @@ deleted_cache = []
 completed_cache = []
 
 current_date = dt.now().strftime('%Y-%m-%d')
-view_overdue()
-view_today()
+
+# Initial display
+smart_display()
 print('\n')
 
 while True:
@@ -330,7 +339,6 @@ while True:
         decide_action(action)
         print('\n')
         if 'ls' not in action:
-            view_overdue()
-            view_today()
+            smart_display()
 
 save_changes()
