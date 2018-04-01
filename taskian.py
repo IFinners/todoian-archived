@@ -35,7 +35,7 @@ def decide_action(command):
         else:
             delete_task(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1).lower() in ('d', 'done'):
+    elif command_regex.group(1).lower() in ('c', 'complete', 'comp'):
         complete_task(int(command_regex.group(2)) - 1)
 
     elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
@@ -52,6 +52,12 @@ def decide_action(command):
 
     elif command_regex.group(1).lower() in ('s', 'sub', 'subtask'):
         add_sub(command_regex.group(2))
+
+    elif command_regex.group(1).lower() in ('cs', 'comp subtask'):
+        complete_sub(command_regex.group(2))
+
+    elif command_regex.group(1).lower() in ('ds', 'rs', 'rm sub', 'del subtask'):
+        delete_sub(command_regex.group(2))
         
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_cache)
@@ -152,6 +158,12 @@ def complete_task(task_num):
         old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
         new_date = old_date + timedelta(int(task_data[task_num][3]))
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
+        # Need to remove [Done] from completed subtasks
+        if task_data[task_num][4] != '':
+            print("subs found!")
+            for num, subtask in enumerate(task_data[task_num][4]):
+                task_data[task_num][4][num] = subtask.rstrip('[Done]')
+
     else:
         completed_cache.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
@@ -200,7 +212,7 @@ def remove_repeat(task_num):
 
 
 def update_order():
-    """Update the numbering of the tasks."""
+    """Updates the numbering of the tasks."""
     task_data.sort(key=lambda x: x[2])
     count = 1
     for task in task_data:
@@ -209,7 +221,7 @@ def update_order():
 
 
 def add_sub(command_extra):
-    """Add subtask to a task."""
+    """Adds subtask to a task."""
     sub_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
     task_num = int(sub_regex.group(1)) - 1
     subtask = sub_regex.group(2)
@@ -222,10 +234,44 @@ def add_sub(command_extra):
         task_data[task_num][4].append(subtask)
 
 
+def complete_sub(command_extra):
+    """Marks a subtask as complete."""
+    subcom_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    task_num = int(subcom_regex.group(1)) - 1
+    if subcom_regex.group(2):
+        sub_num = int(subcom_regex.group(2)) - 1
+    else:
+        sub_num = int(input("  Enter the number of the subtask")) - 1
+    task_data[task_num][4][sub_num] = task_data[task_num][4][sub_num] + " [Done]" 
+
+
+def delete_sub(command_extra):
+    """Removes a subtask."""
+    delcom_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    task_num = int(delcom_regex.group(1)) - 1
+    if delcom_regex.group(2):
+        sub_num = int(delcom_regex.group(2)) - 1
+    else:
+        sub_num = input("  Enter the number of the subtask")
+    del task_data[task_num][4][sub_num]
+
+
 def print_sub(task_num):
+    """Prints a tasks subtasks."""
     for subtask in task_data[task_num][4]:
+        if subtask[-6:] == '[Done]':
+            undone = subtask.rstrip('[Done]')
+            subtask = strike_text(undone)
         print("        +) {}".format(subtask))
     print()
+
+
+def strike_text(text):
+    """Adds a strikethtough effect to text."""
+    striked = ''
+    for char in text:
+        striked = striked + char + '\u0336'
+    return striked
 
 
 # A dictionary of ANSI escapse sequences for font effects.
