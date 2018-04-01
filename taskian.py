@@ -16,11 +16,15 @@ def decide_action(command):
             view_today()
         elif command_regex.group(2).lower() in ('o', 'overdue'):
             view_overdue()
+        elif command_regex.group(2).lower() in ('tm', 'tomorrow'):
+            view_tomorrow()
         elif command_regex.group(2).lower() in ('f', 'future'):
+            view_tomorrow()
             view_future()
         elif command_regex.group(2).lower() in ('a', 'all'):
             view_overdue()
             view_today()
+            view_tomorrow()
             view_future()
         else:
             smart_display()
@@ -69,10 +73,9 @@ def decide_action(command):
 
 
 def view_today():
-    """Prints all of today's tasks to the terminal.."""
+    """Prints all of today's tasks"""
     print()
-    print('  ' + font_dict['green'] + font_dict['under'] + "TODAY'S TASKS"
-          + font_dict['end'])
+    print('  ' + font_dict['green'] + "TODAY" + font_dict['end'])
     empty = True
     for task in task_data:
         if task[2] == current_date:
@@ -86,16 +89,33 @@ def view_today():
     print()
 
 
-def view_overdue():
-    """Prints all overdue tasks to the terminal."""
+def view_tomorrow():
+    """Prints all tasks due tomorrow"""
     print()
-    print('  ' + font_dict['red'] + font_dict['under'] + "OVERDUE TASKS"
-          + font_dict['end'])
+    print('  ' + font_dict['orange'] + "TOMORROW" + font_dict['end'])
+    empty = True
+    for task in task_data:
+        if ((dt.strptime(task[2], '%Y-%m-%d')
+             - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
+            print("    {}| {}".format(task[0], task[1]))
+            # Check for Subtasks
+            if task[4]:
+                print_sub(int(task[0] - 1))
+            empty = False
+    if empty:
+        print("    No Tasks Found")
+    print()
+
+
+def view_overdue():
+    """Prints all overdue tasks."""
+    print()
+    print('  ' + font_dict['red'] + "OVERDUE" + font_dict['end'])
     empty = True
     for task in task_data:
         if task[2] < current_date:
             over = ((dt.strptime(current_date, '%Y-%m-%d')
-                          - dt.strptime(task[2], '%Y-%m-%d')).days)
+                     - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
                 print("    {}| {} [Due Yesterday]".format(task[0], task[1]))
             else:
@@ -112,16 +132,13 @@ def view_overdue():
 def view_future():
     """Prints all future tasks to the terminal.."""
     print()
-    print('  ' + font_dict['blue'] + font_dict['under'] + "FUTURE TASKS"
-          + font_dict['end'])
+    print('  ' + font_dict['blue'] + "FUTURE" + font_dict['end'])
     empty = True
     for task in task_data:
         if task[2] > current_date:
             until = ((dt.strptime(task[2], '%Y-%m-%d')
                           - dt.strptime(current_date, '%Y-%m-%d')).days)
-            if until == 1:
-                print("    {}| {} [Due Tommorow]".format(task[0], task[1]))
-            else:
+            if until > 1:
                 print("    {}| {} [Due in {} Days]".format(task[0], task[1], until))
             # Check for Subtasks
             if task[4]:
@@ -134,7 +151,7 @@ def view_future():
 
 def add_task(command_extra):
     """Adds system argument task to the task list."""
-    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w)?', command_extra)
+    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w*)?', command_extra)
     task = add_regex.group(1)
     if add_regex.group(2):
         date = add_regex.group(2)
@@ -291,22 +308,24 @@ def save_changes():
             f.write("{}|+|{}|+|{}|+|{}\n".format(task_info[1], task_info[2],
                     task_info[3], '+|+'.join(task_info[4])))
 
-def smart_display():
+def smart_display(splash=False):
     """."""
     if task_data[0][2] < current_date:
         view_overdue()
     view_today()
-    if task_data[-1][2] > current_date:
-        view_future()
+    for task in task_data:
+        if ((dt.strptime(task[2], '%Y-%m-%d')
+             - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
+            view_tomorrow()
+            break
 
 
 # A dictionary of ANSI escapse sequences for font effects.
 font_dict = {
-   'blue':  '\033[94m',
-   'green':  '\033[92m',
-   'red':  '\033[91m',
-   'bold': '\033[1m',
-   'under':  '\033[4m',
+   'blue':  '\033[4;94m',
+   'green':  '\033[4;92m',
+   'orange': '\033[4;93m',
+   'red':  '\033[4;91m',
    'end':  '\033[0m',
 }
 
@@ -336,7 +355,7 @@ completed_cache = []
 current_date = dt.now().strftime('%Y-%m-%d')
 
 # Initial display
-smart_display()
+smart_display(True)
 print('\n')
 
 while True:
