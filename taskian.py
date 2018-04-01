@@ -29,7 +29,7 @@ def decide_action(command):
         add_task(command_regex.group(2))
     
     elif command_regex.group(1).lower() in ('rm', 'remove'):
-        if command_regex.group(2).lower() == "all":
+        if command_regex.group(2).lower() in ("all", 'a'):
             task_data.clear()
         else:
             delete_task(int(command_regex.group(2)) - 1)
@@ -41,7 +41,7 @@ def decide_action(command):
         edit_desc(command_regex.group(2))
     
     elif command_regex.group(1).lower() in ('cd', 'change date'):
-        change_date(int(command_regex.group(2)) - 1)
+        change_date(command_regex.group(2))
     
     elif command_regex.group(1).lower() in ('ar', 'add repeat'):
         add_repeat(command_regex.group(2))
@@ -190,12 +190,20 @@ def undo_action(action):
     task_data.append(action.pop(-1))
     update_order()
 
-def change_date(task_num):
+def change_date(command_extra):
     """Changes the due date of a task."""
-    print("  Enter new due_date for {}: (YYYY-MM-DD)")
-    new_date = input("  ")
-    task_data[task_num][2] = new_date
-    update_order()
+    date_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    task_num = int(date_regex.group(1)) - 1
+    if date_regex.group(2):
+        if date_regex.group(2) == 't':
+            task_data[task_num][2] = current_date
+        else:
+            task_data[task_num][2] = date_regex.group(2)
+    else:
+        print("  Enter new due_date for {}: (YYYY-MM-DD)")
+        new_date = input("  ")
+        task_data[task_num][2] = new_date
+        update_order()
 
 
 def add_repeat(command_extra):
