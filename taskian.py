@@ -3,6 +3,7 @@
 """Todo list."""
 
 import re
+import pickle
 from datetime import datetime as dt
 from datetime import timedelta
 
@@ -303,19 +304,21 @@ def strike_text(text):
 
 def save_changes():
     """Writes changes to file."""
-    with open('tasks.txt', mode='w') as f:
-        for task_info in task_data:
-            f.write("{}|+|{}|+|{}|+|{}\n".format(task_info[1], task_info[2],
-                    task_info[3], '+|+'.join(task_info[4])))
+    with open ('data.pickle', 'wb') as fp:
+        pickle.dump(task_data, fp)
 
 def smart_display(splash=False):
     """."""
+    if not task_data:
+        print()
+        print(font_dict['red w/o u'] + "  NO TASKS TO DISPLAY" + font_dict['end'])
+        return
     if task_data[0][2] < current_date:
         view_overdue()
     view_today()
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
-             - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
+            - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
             view_tomorrow()
             break
 
@@ -326,28 +329,13 @@ font_dict = {
    'green':  '\033[4;92m',
    'orange': '\033[4;93m',
    'red':  '\033[4;91m',
+   'red w/o u':  '\033[1;91m',
    'end':  '\033[0m',
 }
 
-with open('tasks.txt') as f:
-    tasks_info = f.read().splitlines()
 
-# Saved data parsing
-task_data = []
-for num, line in enumerate(tasks_info, 1):
-    info = line.split('|+|')
-    data_list = [num]
-    data_list.append(info[0])
-    data_list.append(info[1])
-    data_list.append(info[2])
-    # Subtask detection and parsing
-    if info[3] != '':
-        sub_list = info[3].split('+|+')
-    else:
-        sub_list = ''
-    data_list.append(sub_list)
-    task_data.append(data_list)
-update_order()
+with open('data.pickle', 'rb') as fp:
+    task_data = pickle.load(fp)
 
 deleted_cache = []
 completed_cache = []
