@@ -142,9 +142,9 @@ def view_future():
             if until > 1:
                 print("    {}| {} [Due in {} Days]".format(task[0], task[1], until))
             # Check for Subtasks
-            if task[4]:
-                print_sub(int(task[0] - 1))
-            empty = False
+                if task[4]:
+                    print_sub(int(task[0] - 1))
+                empty = False
     if empty:
         print("    No Tasks Found")
     print()
@@ -203,9 +203,9 @@ def edit_desc(command_extra):
         task_data[task_num][1] = new_desc
 
 
-def undo_action(action):
+def undo_action(cache_list):
     """Restores the last deleted or completed task to the task list."""
-    task_data.append(action.pop(-1))
+    task_data.append(cache_list.pop(-1))
     update_order()
 
 def change_date(command_extra):
@@ -307,8 +307,9 @@ def save_changes():
     with open ('data.pickle', 'wb') as fp:
         pickle.dump(task_data, fp)
 
+
 def smart_display(splash=False):
-    """."""
+    """Checks if Overdue/Tomorrow lists have tasks before printing with Today."""
     if not task_data:
         print()
         print(font_dict['red w/o u'] + "  NO TASKS TO DISPLAY" + font_dict['end'])
@@ -355,5 +356,4 @@ while True:
         print('\n')
         if 'ls' not in action:
             smart_display()
-
-save_changes()
+            save_changes()
