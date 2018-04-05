@@ -288,7 +288,7 @@ def print_sub(task_num):
     """Prints a tasks subtasks."""
     for subtask in task_data[task_num][4]:
         if subtask[-6:] == '[Done]':
-            undone = subtask.rstrip('[Done]')
+            undone = subtask.rstrip(' [Done]')
             subtask = strike_text(undone)
         print("        +) {}".format(subtask))
     print()
@@ -352,8 +352,17 @@ while True:
     if action.lower() == "q":
         break
     else:
-        decide_action(action)
-        print('\n')
+        try:
+            decide_action(action)
+            print('\n')
+        except IndexError:
+            print()
+            print("  No Item Found at that Position in the Tasklist or Cache - "
+                  "Try Again or Enter 'h' or 'help' for Usage Instructions.")
+        except ValueError:
+            print()
+            print("  Did You Forget A Task/Subtask Number in Your Command? - "
+                  "Try Again or Enter 'h' or 'help' for Usage Instructions.")
         if 'ls' not in action:
             smart_display()
             save_changes()
