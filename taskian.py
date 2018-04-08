@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Todo list."""
+"""A Command Line Task Manager."""
 
 import re
 import pickle
@@ -62,6 +62,9 @@ def decide_action(command):
 
     elif command_regex.group(1).lower() in ('rs', 'rm sub', 'remove subtask'):
         delete_sub(command_regex.group(2))
+    
+    elif command_regex.group(1).lower() in ('es', 'ed sub', 'edit subtask'):
+        edit_sub(command_regex.group(2))
         
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_cache)
@@ -180,7 +183,6 @@ def complete_task(task_num):
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
         # Need to remove [Done] from completed subtasks
         if task_data[task_num][4] != '':
-            print("subs found!")
             for num, subtask in enumerate(task_data[task_num][4]):
                 task_data[task_num][4][num] = subtask.rstrip('[Done]')
 
@@ -284,6 +286,20 @@ def delete_sub(command_extra):
     del task_data[task_num][4][sub_num]
 
 
+def edit_sub(command_extra):
+    """Updates a subtask's description."""
+    edits_regex = re.search(r'^(\w)\s(\w)\s?(.*)?', command_extra)
+    task_num = int(edits_regex.group(1)) - 1
+    sub_num = int(edits_regex.group(2)) - 1
+    print("  Editing: '{}'".format(task_data[task_num][4][sub_num]))
+    if edits_regex.group(3):
+        task_data[task_num][4][sub_num] = edits_regex.group(3)
+    else:
+        print("  Enter the new subtask description below:")
+        new_desc = input("  ")
+        task_data[task_num][4][sub_num] = new_desc
+        
+
 def print_sub(task_num):
     """Prints a tasks subtasks."""
     for subtask in task_data[task_num][4]:
@@ -308,7 +324,7 @@ def save_changes():
         pickle.dump(task_data, fp)
 
 
-def smart_display(splash=False):
+def smart_display():
     """Checks if Overdue/Tomorrow lists have tasks before printing with Today."""
     if not task_data:
         print()
@@ -344,7 +360,7 @@ completed_cache = []
 current_date = dt.now().strftime('%Y-%m-%d')
 
 # Initial display
-smart_display(True)
+smart_display()
 print('\n')
 
 while True:
