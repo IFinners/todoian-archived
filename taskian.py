@@ -10,7 +10,7 @@ from datetime import timedelta
 
 def decide_action(command):
     """Decides which action the argument requires."""
-    command_regex = re.search(r'^(\w*)\s?(.*)', command)
+    command_regex = re.search(r'^([-\w]*)\s?(.*)', command)
     
     if command_regex.group(1).lower() in ('ls','list'):
         if command_regex.group(2).lower() in ('t', 'today'):
@@ -178,14 +178,18 @@ def delete_task(task_num):
 def complete_task(task_num):
     """Marks a task as complete."""
     if task_data[task_num][3] != '':
+        # Append copy of data so non-repeat date can be restored using 'Uncheck'
+        data_copy = task_data[task_num][:]
+        completed_cache.append(data_copy)
+
         old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
         new_date = old_date + timedelta(int(task_data[task_num][3]))
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
+
         # Need to remove [Done] from completed subtasks
         if task_data[task_num][4] != '':
             for num, subtask in enumerate(task_data[task_num][4]):
                 task_data[task_num][4][num] = subtask.rstrip('[Done]')
-
     else:
         completed_cache.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
@@ -207,6 +211,12 @@ def edit_desc(command_extra):
 
 def undo_action(cache_list):
     """Restores the last deleted or completed task to the task list."""
+    if cache_list == completed_cache and completed_cache[-1][3] != '':
+        description = completed_cache[-1][1]
+        for task in task_data:
+            if description == task[1]:
+                del task_data[int(task[0]) - 1]
+                break
     task_data.append(cache_list.pop(-1))
     update_order()
 
@@ -256,8 +266,8 @@ def add_sub(command_extra):
     task_num = int(sub_regex.group(1)) - 1
     subtask = sub_regex.group(2)
     if not subtask:
-        print("Enter Subtask:")
-        subtask = input()
+        print("  Enter Subtask:")
+        subtask = input("  ")
     if task_data[task_num][4] == '':
         task_data[task_num][4] = [subtask]
     else:
@@ -361,7 +371,6 @@ font_dict = {
 
 with open('data.pickle', 'rb') as fp:
     task_data = pickle.load(fp)
-
 deleted_cache = []
 completed_cache = []
 
