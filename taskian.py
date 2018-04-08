@@ -39,31 +39,31 @@ def decide_action(command):
         else:
             delete_task(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1).lower() in ('c', 'complete', 'comp'):
+    elif command_regex.group(1).lower() in ('c', 'complete'):
         complete_task(int(command_regex.group(2)) - 1)
 
     elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
     
-    elif command_regex.group(1).lower() in ('cd', 'change date'):
+    elif command_regex.group(1).lower() in ('cd', 'change-date'):
         change_date(command_regex.group(2))
     
-    elif command_regex.group(1).lower() in ('ar', 'add repeat'):
+    elif command_regex.group(1).lower() in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('rr', 'remove repeat'):
+    elif command_regex.group(1).lower() in ('rr', 'remove-repeat'):
         remove_repeat(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1).lower() in ('s', 'sub', 'subtask'):
+    elif command_regex.group(1).lower() in ('s', 'subtask'):
         add_sub(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('cs', 'comp subtask'):
+    elif command_regex.group(1).lower() in ('cs', 'comp-subtask'):
         complete_sub(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('rs', 'rm sub', 'remove subtask'):
+    elif command_regex.group(1).lower() in ('rs', 'remove-subtask'):
         delete_sub(command_regex.group(2))
     
-    elif command_regex.group(1).lower() in ('es', 'ed sub', 'edit subtask'):
+    elif command_regex.group(1).lower() in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2))
         
     elif command.lower() in ('u', 'undo'):
@@ -72,8 +72,8 @@ def decide_action(command):
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_cache)
     
-    elif command_regex.group(1).lower() == 'save':
-        save_changes()
+    elif command.lower() in ('h', 'help'):
+        show_help()
 
 
 def view_today():
@@ -340,6 +340,14 @@ def smart_display():
             break
 
 
+def show_help():
+    """Prints Taskian usage instructions to the screen."""
+    print()
+    with open('help.txt') as f:
+        for line in f.readlines():
+            print(line, end='')
+
+
 # A dictionary of ANSI escapse sequences for font effects.
 font_dict = {
    'blue':  '\033[4;94m',
@@ -379,6 +387,7 @@ while True:
             print()
             print("  Did You Forget A Task/Subtask Number in Your Command? - "
                   "Try Again or Enter 'h' or 'help' for Usage Instructions.")
-        if 'ls' not in action:
+        
+        if action[:2] != 'ls' and action[:1] != 'h' and action[:4] != 'help':
             smart_display()
             save_changes()
