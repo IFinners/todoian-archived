@@ -198,7 +198,7 @@ def complete_task(task_num):
 
 def edit_desc(command_extra):
     """Updates a task's description."""
-    edit_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    edit_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(edit_regex.group(1)) - 1
     print("  Editing: '{}'".format(task_data[task_num][1]))
     if edit_regex.group(2):
@@ -211,6 +211,7 @@ def edit_desc(command_extra):
 
 def undo_action(cache_list):
     """Restores the last deleted or completed task to the task list."""
+    # Check for a repeat flag. If found delete matching task before restoring
     if cache_list == completed_cache and completed_cache[-1][3] != '':
         description = completed_cache[-1][1]
         for task in task_data:
@@ -222,7 +223,7 @@ def undo_action(cache_list):
 
 def change_date(command_extra):
     """Changes the due date of a task."""
-    date_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    date_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(date_regex.group(1)) - 1
     if date_regex.group(2):
         if date_regex.group(2) == 't':
@@ -233,12 +234,12 @@ def change_date(command_extra):
         print("  Enter new due_date for {}: (YYYY-MM-DD)")
         new_date = input("  ")
         task_data[task_num][2] = new_date
-        update_order()
+    update_order()
 
 
 def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
-    repeat_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     if repeat_regex.group(2):
         step = repeat_regex.group(2)
     else:
@@ -262,7 +263,7 @@ def update_order():
 
 def add_sub(command_extra):
     """Adds subtask to a task."""
-    sub_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    sub_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(sub_regex.group(1)) - 1
     subtask = sub_regex.group(2)
     if not subtask:
@@ -276,7 +277,7 @@ def add_sub(command_extra):
 
 def complete_sub(command_extra):
     """Marks a subtask as complete."""
-    subcom_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    subcom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(subcom_regex.group(1)) - 1
     if subcom_regex.group(2):
         sub_num = int(subcom_regex.group(2)) - 1
@@ -287,7 +288,7 @@ def complete_sub(command_extra):
 
 def delete_sub(command_extra):
     """Removes a subtask."""
-    delcom_regex = re.search(r'^(\w)\s?(.*)?', command_extra)
+    delcom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(delcom_regex.group(1)) - 1
     if delcom_regex.group(2):
         sub_num = int(delcom_regex.group(2)) - 1
@@ -298,7 +299,7 @@ def delete_sub(command_extra):
 
 def edit_sub(command_extra):
     """Updates a subtask's description."""
-    edits_regex = re.search(r'^(\w)\s(\w)\s?(.*)?', command_extra)
+    edits_regex = re.search(r'^(\w*)\s(\w)\s?(.*)?', command_extra)
     task_num = int(edits_regex.group(1)) - 1
     sub_num = int(edits_regex.group(2)) - 1
     print("  Editing: '{}'".format(task_data[task_num][4][sub_num]))
