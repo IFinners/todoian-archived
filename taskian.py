@@ -11,7 +11,7 @@ from datetime import timedelta
 def decide_action(command):
     """Decides which action the argument requires."""
     command_regex = re.search(r'^([-\w]*)\s?(.*)', command)
-    
+
     if command_regex.group(1).lower() in ('ls','list'):
         if command_regex.group(2).lower() in ('t', 'today'):
             view_today()
@@ -29,10 +29,10 @@ def decide_action(command):
             view_future()
         else:
             smart_display()
-    
+
     elif command_regex.group(1).lower() in ('a', 'add'):
         add_task(command_regex.group(2))
-    
+
     elif command_regex.group(1).lower() in ('rm', 'remove'):
         if command_regex.group(2).lower() in ("all", 'a'):
             task_data.clear()
@@ -44,10 +44,10 @@ def decide_action(command):
 
     elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
-    
+
     elif command_regex.group(1).lower() in ('cd', 'change-date'):
         change_date(command_regex.group(2))
-    
+
     elif command_regex.group(1).lower() in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
 
@@ -62,16 +62,16 @@ def decide_action(command):
 
     elif command_regex.group(1).lower() in ('rs', 'remove-subtask'):
         delete_sub(command_regex.group(2))
-    
+
     elif command_regex.group(1).lower() in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2))
-        
+
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_cache)
-    
+
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_cache)
-    
+
     elif command.lower() in ('h', 'help'):
         show_help()
 
@@ -79,11 +79,11 @@ def decide_action(command):
 def view_today():
     """Prints all of today's tasks"""
     print()
-    print('  ' + font_dict['green'] + "TODAY" + font_dict['end'])
+    print('  ' + FONT_DICT['green'] + "TODAY" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if task[2] == current_date:
-            print("    {}| {}".format(task[0], task[1]))
+            print("   {}".rjust(6).format(task[0]) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
                 print_sub(int(task[0] - 1))
@@ -96,12 +96,12 @@ def view_today():
 def view_tomorrow():
     """Prints all tasks due tomorrow"""
     print()
-    print('  ' + font_dict['orange'] + "TOMORROW" + font_dict['end'])
+    print('  ' + FONT_DICT['orange'] + "TOMORROW" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
              - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
-            print("    {}| {}".format(task[0], task[1]))
+            print("    {}".rjust(6).format(task[0]) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
                 print_sub(int(task[0] - 1))
@@ -114,16 +114,18 @@ def view_tomorrow():
 def view_overdue():
     """Prints all overdue tasks."""
     print()
-    print('  ' + font_dict['red'] + "OVERDUE" + font_dict['end'])
+    print('  ' + FONT_DICT['red'] + "OVERDUE" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if task[2] < current_date:
             over = ((dt.strptime(current_date, '%Y-%m-%d')
                      - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
-                print("    {}| {} [Due Yesterday]".format(task[0], task[1]))
+                print("    {}".rjust(6).format(task[0])
+                      + "| {}[Due Yesterday]".format(task[1]))
             else:
-                print("    {}| {} [Due {} Days Ago]".format(task[0], task[1], over))
+                print("    {}".rjust(6).format(task[0])
+                      + "| {}[Due {} Days Ago]".format(task[1], over))
             # Check for Subtasks
             if task[4]:
                 print_sub(int(task[0] - 1))
@@ -136,14 +138,15 @@ def view_overdue():
 def view_future():
     """Prints all future tasks to the terminal.."""
     print()
-    print('  ' + font_dict['blue'] + "FUTURE" + font_dict['end'])
+    print('  ' + FONT_DICT['blue'] + "FUTURE" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if task[2] > current_date:
             until = ((dt.strptime(task[2], '%Y-%m-%d')
                           - dt.strptime(current_date, '%Y-%m-%d')).days)
             if until > 1:
-                print("    {}| {} [Due in {} Days]".format(task[0], task[1], until))
+                print("    {}".rjust(6).format(task[0])
+                      + "| {} [Due in {} Days]".format(task[1], until))
             # Check for Subtasks
                 if task[4]:
                     print_sub(int(task[0] - 1))
@@ -283,7 +286,7 @@ def complete_sub(command_extra):
         sub_num = int(subcom_regex.group(2)) - 1
     else:
         sub_num = int(input("  Enter the number of the subtask")) - 1
-    task_data[task_num][4][sub_num] = task_data[task_num][4][sub_num] + " [Done]" 
+    task_data[task_num][4][sub_num] = task_data[task_num][4][sub_num] + " [Done]"
 
 
 def delete_sub(command_extra):
@@ -309,7 +312,7 @@ def edit_sub(command_extra):
         print("  Enter the new subtask description below:")
         new_desc = input("  ")
         task_data[task_num][4][sub_num] = new_desc
-        
+
 
 def print_sub(task_num):
     """Prints a tasks subtasks."""
@@ -339,7 +342,7 @@ def smart_display():
     """Checks if Overdue/Tomorrow lists have tasks before printing with Today."""
     if not task_data:
         print()
-        print(font_dict['red w/o u'] + "  NO TASKS TO DISPLAY" + font_dict['end'])
+        print(FONT_DICT['red w/o u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
         return
     if task_data[0][2] < current_date:
         view_overdue()
@@ -360,7 +363,7 @@ def show_help():
 
 
 # A dictionary of ANSI escapse sequences for font effects.
-font_dict = {
+FONT_DICT = {
    'blue':  '\033[4;94m',
    'green':  '\033[4;92m',
    'orange': '\033[4;93m',
@@ -372,6 +375,7 @@ font_dict = {
 
 with open('data.pickle', 'rb') as fp:
     task_data = pickle.load(fp)
+
 deleted_cache = []
 completed_cache = []
 
@@ -397,7 +401,7 @@ while True:
             print()
             print("  Did You Forget A Task/Subtask Number in Your Command? - "
                   "Try Again or Enter 'h' or 'help' for Usage Instructions.")
-        
+
         if action[:2] != 'ls' and action[:1] != 'h' and action[:4] != 'help':
             smart_display()
             save_changes()
