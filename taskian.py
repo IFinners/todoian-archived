@@ -11,18 +11,20 @@ from datetime import timedelta
 def decide_action(command):
     """Decides which action the argument requires."""
     command_regex = re.search(r'^([-\w]*)\s?(.*)', command)
+    command_main = command_regex.group(1).lower()
+    command_extra = command_regex.group(2).lower()
 
-    if command_regex.group(1).lower() in ('ls','list'):
-        if command_regex.group(2).lower() in ('t', 'today'):
+    if command_main in ('ls','list'):
+        if command_extra in ('t', 'today'):
             view_today()
-        elif command_regex.group(2).lower() in ('o', 'overdue'):
+        elif command_extra in ('o', 'overdue'):
             view_overdue()
-        elif command_regex.group(2).lower() in ('tm', 'tomorrow'):
+        elif command_extra in ('tm', 'tomorrow'):
             view_tomorrow()
-        elif command_regex.group(2).lower() in ('f', 'future'):
+        elif command_extra in ('f', 'future'):
             view_tomorrow()
             view_future()
-        elif command_regex.group(2).lower() in ('a', 'all'):
+        elif command_extra in ('a', 'all'):
             view_overdue()
             view_today()
             view_tomorrow()
@@ -30,40 +32,40 @@ def decide_action(command):
         else:
             smart_display()
 
-    elif command_regex.group(1).lower() in ('a', 'add'):
+    elif command_main in ('a', 'add'):
         add_task(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('rm', 'remove'):
-        if command_regex.group(2).lower() in ("all", 'a'):
+    elif command_main in ('rm', 'remove'):
+        if command_extra in ("all", 'a'):
             task_data.clear()
         else:
             delete_task(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1).lower() in ('c', 'complete'):
+    elif command_main in ('c', 'complete'):
         complete_task(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1).lower() in ('e', 'ed', 'edit'):
+    elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('cd', 'change-date'):
+    elif command_main in ('cd', 'change-date'):
         change_date(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('ar', 'add-repeat'):
+    elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('rr', 'remove-repeat'):
+    elif command_main in ('rr', 'remove-repeat'):
         remove_repeat(int(command_regex.group(2)) - 1)
 
-    elif command_regex.group(1).lower() in ('s', 'subtask'):
+    elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('cs', 'comp-subtask'):
+    elif command_main in ('cs', 'comp-subtask'):
         complete_sub(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('rs', 'remove-subtask'):
+    elif command_main in ('rs', 'remove-subtask'):
         delete_sub(command_regex.group(2))
 
-    elif command_regex.group(1).lower() in ('es', 'edit-subtask'):
+    elif command_main in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2))
 
     elif command.lower() in ('u', 'undo'):
