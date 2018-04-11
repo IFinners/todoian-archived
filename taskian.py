@@ -83,7 +83,7 @@ def view_today():
     empty = True
     for task in task_data:
         if task[2] == current_date:
-            print("   {}".rjust(6).format(task[0]) + "| {}".format(task[1]))
+            print("   {}".format(task[0]).rjust(6) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
                 print_sub(int(task[0] - 1))
@@ -101,7 +101,7 @@ def view_tomorrow():
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
              - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
-            print("    {}".rjust(6).format(task[0]) + "| {}".format(task[1]))
+            print("    {}".format(task[0]).rjust(6) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
                 print_sub(int(task[0] - 1))
@@ -121,10 +121,10 @@ def view_overdue():
             over = ((dt.strptime(current_date, '%Y-%m-%d')
                      - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
-                print("    {}".rjust(6).format(task[0])
+                print("    {}".format(task[0]).rjust(6)
                       + "| {}[Due Yesterday]".format(task[1]))
             else:
-                print("    {}".rjust(6).format(task[0])
+                print("    {}".format(task[0]).rjust(6)
                       + "| {}[Due {} Days Ago]".format(task[1], over))
             # Check for Subtasks
             if task[4]:
@@ -145,7 +145,7 @@ def view_future():
             until = ((dt.strptime(task[2], '%Y-%m-%d')
                           - dt.strptime(current_date, '%Y-%m-%d')).days)
             if until > 1:
-                print("    {}".rjust(6).format(task[0])
+                print("    {}".format(task[0]).rjust(6)
                       + "| {} [Due in {} Days]".format(task[1], until))
             # Check for Subtasks
                 if task[4]:
