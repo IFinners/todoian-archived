@@ -160,14 +160,22 @@ def view_future():
 
 def add_task(command_extra):
     """Adds system argument task to the task list."""
-    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(\w*)?', command_extra)
+    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(.*)?', command_extra)
     task = add_regex.group(1)
-    if add_regex.group(2):
-        date = add_regex.group(2)
+    opt_date = add_regex.group(2)
+    opt_repeat = add_regex.group(3)
+    print(opt_repeat)
+
+    if opt_date:
+        date = opt_date
     else:
         date = current_date
-    if add_regex.group(3):
-        repeat = int(add_regex.group(3))
+
+    if opt_repeat:
+        if ',' in opt_repeat:
+            repeat = opt_repeat.split(',')
+        else:
+            repeat = opt_repeat
     else:
         repeat = ''
     task_data.append([len(task_data) + 1, task, date, repeat, ''])
@@ -180,12 +188,18 @@ def delete_task(task_num):
     update_order()
     print("  Task deleted. Enter 'undo' or 'u' to restore.")
 
+
 def complete_task(task_num):
     """Marks a task as complete."""
-    if task_data[task_num][3] != '':
+    repeat = task_data[task_num][3]
+    if repeat != '':
         # Append copy of data so non-repeat date can be restored using 'Uncheck'
         data_copy = task_data[task_num][:]
         completed_cache.append(data_copy)
+        
+        if type(repeat) is list:
+            comp_list_rep(task_num, repeat)
+            return
 
         old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
         new_date = old_date + timedelta(int(task_data[task_num][3]))
@@ -193,22 +207,62 @@ def complete_task(task_num):
 
         # Need to remove [Done] from completed subtasks
         if task_data[task_num][4] != '':
-            for num, subtask in enumerate(task_data[task_num][4]):
-                task_data[task_num][4][num] = subtask.rstrip('[Done]')
+            reset_subs(task_num)
     else:
         completed_cache.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
     update_order()
 
 
+def comp_list_rep(task_num, repeat):
+    """Calculates the next day due in the repeat list and changes the due date."""
+    # Find the name of the day the current due date is set to
+    current_due = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
+    current_day = dt.strftime(current_due, '%a').lower()
+    # Find the next day listed
+    day_position = repeat.index(current_day)
+    if day_position is False:
+        print("  Is the due date one of the named repeat days? If not, please "
+              "change the date to one of the repeat days and try again.")
+    elif day_position == len(repeat) - 1:
+        target_day = repeat[0]
+    else:
+        target_day = repeat[day_position + 1]
+    # Cycle through days until the day matches
+    checked_day = current_due
+    while True:
+        day_test = checked_day + timedelta(1)
+        day_name = dt.strftime(day_test, '%a').lower()
+        if day_name == target_day:
+            new_date = day_test
+            break
+        else:
+            checked_day = day_test
+
+    task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
+
+    if task_data[task_num][4] != '':
+        reset_subs(task_num)
+
+    print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
+    update_order()
+
+
+def reset_subs(task_num):
+    """Resets subtasks to non-completed status"""
+    for num, subtask in enumerate(task_data[task_num][4]):
+            task_data[task_num][4][num] = subtask.rstrip('[Done]')
+ 
+
 def edit_desc(command_extra):
     """Updates a task's description."""
     edit_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(edit_regex.group(1)) - 1
-    print("  Editing: '{}'".format(task_data[task_num][1]))
+    
     if edit_regex.group(2):
         task_data[task_num][1] = edit_regex.group(2)
     else:
+        print("  Editing: '{}'".format(task_data[task_num][1]))
         print("  Enter the new task description below:")
         new_desc = input("  ")
         task_data[task_num][1] = new_desc
@@ -245,10 +299,22 @@ def change_date(command_extra):
 def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    if repeat_regex.group(2):
-        step = repeat_regex.group(2)
+    command_step = repeat_regex.group(2)
+    print(command_step)
+    if command_step:
+        if ',' in command_step:
+            step = command_step.split(',')
+        else:
+            step = command_step
     else:
-        step = input("  Enter how many days until the task should repeat: ")
+        print("  Enter your repeat length in number of days or "
+              "a list of days seperated by a comma (mon,wed,sat): ")
+        unsorted_step = input("  ").lower()
+        if ',' in unsorted_step:
+            step = unsorted_step.split(',')
+        else:
+            step = unsorted_step
+            
     task_data[int(repeat_regex.group(1)) - 1][3] = step
 
 
