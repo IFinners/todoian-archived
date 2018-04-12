@@ -220,11 +220,14 @@ def comp_list_rep(task_num, repeat):
     current_due = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
     current_day = dt.strftime(current_due, '%a').lower()
     # Find the next day listed
-    day_position = repeat.index(current_day)
-    if day_position is False:
+    try:
+        day_position = repeat.index(current_day)
+    except ValueError:
         print("  Is the due date one of the named repeat days? If not, please "
               "change the date to one of the repeat days and try again.")
-    elif day_position == len(repeat) - 1:
+        return
+       
+    if day_position == len(repeat) - 1:
         target_day = repeat[0]
     else:
         target_day = repeat[day_position + 1]
