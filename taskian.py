@@ -24,39 +24,48 @@ def decide_action(command):
         elif command_extra in ('f', 'future'):
             view_tomorrow()
             view_future()
-        elif command_extra in ('a', 'all'):
+        elif command_extra in ('g', 'goals'):
+            view_goals()
+        elif command_extra in ('at', 'all-tasks'):
             view_overdue()
             view_today()
             view_tomorrow()
             view_future()
-        elif command_extra in ('g', 'goals'):
+        elif command_extra in ('a', 'all'):
             view_goals()
+            view_overdue()
+            view_today()
+            view_tomorrow()
+            view_future()
         else:
             smart_display()
 
     elif command_main in ('a', 'add'):
         add_task(command_regex.group(2))
 
-    elif command_main in ('ag', 'add goal'):
+    elif command_main in ('ag', 'add-goal'):
         add_goal(command_regex.group(2))
 
     elif command_main in ('rm', 'remove'):
         if command_extra in ("all", 'a'):
             task_data.clear()
         else:
-            delete_task(int(command_extra) - 1)
+            delete_item(int(command_extra) - 1, deleted_tasks)
 
-    elif command_main in ('rmg', 'remove goal'):
+    elif command_main in ('rmg', 'remove-goal'):
         if command_extra in ("all", 'a'):
             goal_data.clear()
         else:
-            delete_goal(int(command_extra) - 1)    
-    
+            delete_item(int(command_extra) - 1, deleted_goals)
+
     elif command_main in ('c', 'complete'):
         if 't' in command_extra or 'today' in command_extra:
             complete_today()
         else:
             complete_task(int(command_extra) - 1)
+
+    elif command_main in ('cg', 'complete-goal'):
+        complete_goal(int(command_extra) - 1)
 
     elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
@@ -83,10 +92,16 @@ def decide_action(command):
         edit_sub(command_regex.group(2))
 
     elif command.lower() in ('u', 'undo'):
-        undo_action(deleted_cache)
+        undo_action(deleted_tasks)
 
     elif command.lower() in ('uc', 'uncheck'):
-        undo_action(completed_cache)
+        undo_action(completed_tasks)
+
+    elif command.lower() in ('ug', 'undo-goal'):
+        undo_action(deleted_goals)
+
+    elif command.lower() in ('ucg', 'uncheck-goal'):
+        undo_action(completed_goals)
 
     elif command.lower() in ('h', 'help'):
         show_help()
@@ -95,7 +110,7 @@ def decide_action(command):
 def view_today():
     """Prints all of today's tasks"""
     print()
-    print('  ' + FONT_DICT['green'] + "TODAY" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['green'] + "TODAY'S TASKS" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if task[2] == current_date:
@@ -112,7 +127,7 @@ def view_today():
 def view_tomorrow():
     """Prints all tasks due tomorrow"""
     print()
-    print('  ' + FONT_DICT['orange'] + "TOMORROW" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['orange'] + "TOMORROW'S TASKS" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
@@ -130,7 +145,7 @@ def view_tomorrow():
 def view_overdue():
     """Prints all overdue tasks."""
     print()
-    print('  ' + FONT_DICT['red'] + "OVERDUE" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['red'] + "OVERDUE TASKS" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if task[2] < current_date:
@@ -154,7 +169,7 @@ def view_overdue():
 def view_future():
     """Prints all future tasks to the terminal.."""
     print()
-    print('  ' + FONT_DICT['blue'] + "FUTURE" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['blue'] + "FUTURE TASKS" + FONT_DICT['end'])
     empty = True
     for task in task_data:
         if task[2] > current_date:
@@ -176,6 +191,9 @@ def view_goals():
     """Prints all goals"""
     print()
     print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n')
+    if not goal_data:
+        print("    No Goals Found")
+        return
     for goal in goal_data:
         percent_done = int(goal[3]) // 5
         print("    {}".format(goal[0]).rjust(6), end='')
@@ -215,7 +233,7 @@ def add_task(command_extra):
 
 def add_goal(command_extra):
     """Adds a goal to the goal list."""
-    gadd_regex = re.search(r'^"(.*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
+    gadd_regex = re.search(r'^"([^"]*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
     goal = gadd_regex.group(1)
     opt_date = gadd_regex.group(2)
     opt_percent = gadd_regex.group(3)
@@ -235,17 +253,24 @@ def add_goal(command_extra):
     view_goals()
 
 
-def delete_task(task_num):
-    """Removes a task from the task list."""
-    deleted_cache.append(task_data.pop(task_num))
-    update_order()
-    print("  Task deleted. Enter 'undo' or 'u' to restore.")
+def delete_item(task_num, cache_list):
+    """Removes an item from the task or goal list."""
+    if cache_list is deleted_tasks:
+        data_list = task_data
+        undo_com = "'undo' or 'u'"
+    elif cache_list is deleted_goals:
+        data_list = goal_data
+        undo_com = "'undo-goal' or 'ug'"
+    cache_list.append(data_list.pop(task_num))
+    print("  Item deleted. Enter {} to restore.".format(undo_com))
+    
+    if data_list == task_data:
+        update_order()
+    elif data_list == goal_data:
+        update_goal_order()
+        view_goals()
 
 
-def delete_goal(goal_num):
-    """Deletes a goal"""
-    del goal_data[goal_num]
-    update_goal_order()
 
 def complete_task(task_num):
     """Marks a task as complete."""
@@ -253,8 +278,8 @@ def complete_task(task_num):
     if repeat != '':
         # Append copy of data so non-repeat date can be restored using 'Uncheck'
         data_copy = task_data[task_num][:]
-        completed_cache.append(data_copy)
-        
+        completed_tasks.append(data_copy)
+
         if type(repeat) is list:
             comp_list_rep(task_num, repeat)
             return
@@ -267,7 +292,7 @@ def complete_task(task_num):
         if task_data[task_num][4] != '':
             reset_subs(task_num)
     else:
-        completed_cache.append(task_data.pop(task_num))
+        completed_tasks.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
     update_order()
 
@@ -278,7 +303,7 @@ def complete_today():
     for task in task_data:
         if task[2] == current_date:
             to_complete_list.append(task[0] - 1)
-    
+
     offset = 0
     for task_num in to_complete_list:
         complete_task(task_num - offset)
@@ -297,7 +322,7 @@ def comp_list_rep(task_num, repeat):
         print("  Is the due date one of the named repeat days? If not, please "
               "change it to one of the repeat days and try again.")
         return
-       
+
     if day_position == len(repeat) - 1:
         target_day = repeat[0]
     else:
@@ -322,17 +347,25 @@ def comp_list_rep(task_num, repeat):
     update_order()
 
 
+def complete_goal(task_num):
+    """Moves a goal to the completed cache."""
+    completed_goals.append(goal_data.pop(task_num))
+    print("  Goal marked as complete. Enter 'uncheck-goal' or 'ucg' to restore.")
+    update_goal_order()
+    view_goals()
+
+
 def reset_subs(task_num):
     """Resets subtasks to non-completed status"""
     for num, subtask in enumerate(task_data[task_num][4]):
             task_data[task_num][4][num] = subtask.rstrip('[Done]')
- 
+
 
 def edit_desc(command_extra):
     """Updates a task's description."""
     edit_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(edit_regex.group(1)) - 1
-    
+
     if edit_regex.group(2):
         task_data[task_num][1] = edit_regex.group(2)
     else:
@@ -344,15 +377,24 @@ def edit_desc(command_extra):
 
 def undo_action(cache_list):
     """Restores the last deleted or completed task to the task list."""
+    if cache_list is (completed_tasks or deleted_tasks):
+        data_list = task_data
+    elif cache_list is (completed_goals or deleted_goals):
+        data_list = goal_data
+
     # Check for a repeat flag. If found delete matching task before restoring
-    if cache_list == completed_cache and completed_cache[-1][3] != '':
-        description = completed_cache[-1][1]
+    if cache_list == completed_tasks and completed_tasks[-1][3] != '':
+        description = completed_tasks[-1][1]
         for task in task_data:
             if description == task[1]:
                 del task_data[int(task[0]) - 1]
                 break
-    task_data.append(cache_list.pop(-1))
-    update_order()
+    data_list.append(cache_list.pop(-1))
+    if data_list is task_data:
+        update_order()
+    elif data_list is goal_data:
+        update_goal_order()
+        view_goals()
 
 def change_date(command_extra):
     """Changes the due date of a task."""
@@ -388,7 +430,7 @@ def add_repeat(command_extra):
             step = unsorted_step.split(',')
         else:
             step = unsorted_step
-            
+
     task_data[int(repeat_regex.group(1)) - 1][3] = step
 
 
@@ -526,9 +568,12 @@ FONT_DICT = {
 with open('data.pickle', 'rb') as fp:
     task_data = pickle.load(fp)
     goal_data = pickle.load(fp)
-# goal_data = [[1, "This is a goal", "September", 68]]
-deleted_cache = []
-completed_cache = []
+
+# Cache Lists
+deleted_tasks = []
+completed_tasks = []
+deleted_goals = []
+completed_goals = []
 
 current_date = dt.now().strftime('%Y-%m-%d')
 
@@ -548,11 +593,11 @@ while True:
             print('\n')
         except IndexError:
             print()
-            print("  No Item Found at that Position in the Tasklist or Cache - "
+            print("  No Item Found at that Position in the list or Cache - "
                   "Try Again or Enter 'h' or 'help' for Usage Instructions.")
         except ValueError:
             print()
-            print("  Did You Forget A Task/Subtask Number in Your Command? - "
+            print("  Did You Forget A Number For The Item/Subitem in Your Command? - "
                   "Try Again or Enter 'h' or 'help' for Usage Instructions.")
 
         if action[:2] != 'ls' and action[:1] != 'h' and action[:4] != 'help':
