@@ -45,6 +45,7 @@ def decide_action(command):
 
     elif command_main in ('ag', 'add-goal'):
         add_goal(command_regex.group(2))
+        view_goals()
 
     elif command_main in ('rm', 'remove'):
         if command_extra in ("all", 'a'):
@@ -57,6 +58,7 @@ def decide_action(command):
             goal_data.clear()
         else:
             delete_item(int(command_extra) - 1, deleted_goals)
+        view_goals()
 
     elif command_main in ('c', 'complete'):
         if 't' in command_extra or 'today' in command_extra:
@@ -66,18 +68,25 @@ def decide_action(command):
 
     elif command_main in ('cg', 'complete-goal'):
         complete_goal(int(command_extra) - 1)
+        view_goals()
 
     elif command_main in ('e', 'ed', 'edit'):
-        edit_desc(command_regex.group(2))
+        edit_desc(command_regex.group(2), task_data)
+
+    elif command_main in ('eg', 'edg', 'edit-goal'):
+        edit_desc(command_regex.group(2), goal_data)
+        view_goals()
 
     elif command_main in ('cd', 'change-date'):
         change_date(command_extra)
 
     elif command_main in ('ct', 'change-target'):
-        change_target(command_extra)
+        change_target(command_regex.group(2))
+        view_goals()
 
     elif command_main in ('cp', 'change-percentage'):
         change_percentage(command_extra)
+        view_goals()
 
     elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
@@ -86,16 +95,32 @@ def decide_action(command):
         remove_repeat(int(command_extra) - 1)
 
     elif command_main in ('s', 'subtask'):
-        add_sub(command_regex.group(2))
+        add_sub(command_regex.group(2), task_data)
+
+    elif command_main in ('sg', 'subgoal'):
+        add_sub(command_regex.group(2), goal_data)
+        view_goals()
 
     elif command_main in ('cs', 'comp-subtask'):
-        complete_sub(command_extra)
+        complete_sub(command_extra, task_data)
 
     elif command_main in ('rs', 'remove-subtask'):
-        delete_sub(command_extra)
+        delete_sub(command_extra, task_data)
 
     elif command_main in ('es', 'edit-subtask'):
-        edit_sub(command_regex.group(2))
+        edit_sub(command_regex.group(2), task_data)
+
+    elif command_main in ('csg', 'comp-subgoal'):
+        complete_sub(command_extra, goal_data)
+        view_goals()
+
+    elif command_main in ('rsg', 'remove-subgoal'):
+        delete_sub(command_extra, goal_data)
+        view_goals()
+
+    elif command_main in ('esg', 'edit-subgoal'):
+        edit_sub(command_regex.group(2), goal_data)
+        view_goals()
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
@@ -105,9 +130,11 @@ def decide_action(command):
 
     elif command.lower() in ('ug', 'undo-goal'):
         undo_action(deleted_goals)
+        view_goals()
 
     elif command.lower() in ('ucg', 'uncheck-goal'):
         undo_action(completed_goals)
+        view_goals()
 
     elif command.lower() in ('h', 'help'):
         show_help()
@@ -123,7 +150,7 @@ def view_today():
             print("   {}".format(task[0]).rjust(6) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
-                print_sub(int(task[0] - 1))
+                print_sub(int(task[0] - 1), task_data)
             empty = False
     if empty:
         print("    No Tasks Found")
@@ -141,7 +168,7 @@ def view_tomorrow():
             print("    {}".format(task[0]).rjust(6) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
-                print_sub(int(task[0] - 1))
+                print_sub(int(task[0] - 1), task_data)
             empty = False
     if empty:
         print("    No Tasks Found")
@@ -165,7 +192,7 @@ def view_overdue():
                       + "| {} [Due {} Days Ago]".format(task[1], over))
             # Check for Subtasks
             if task[4]:
-                print_sub(int(task[0] - 1))
+                print_sub(int(task[0] - 1), task_data)
             empty = False
     if empty:
         print("    No Tasks Found")
@@ -186,7 +213,7 @@ def view_future():
                       + "| {} [Due in {} Days]".format(task[1], until))
             # Check for Subtasks
                 if task[4]:
-                    print_sub(int(task[0] - 1))
+                    print_sub(int(task[0] - 1), task_data)
                 empty = False
     if empty:
         print("    No Tasks Found")
@@ -209,8 +236,10 @@ def view_goals():
         else:
             print("| {}".format(goal[1].upper().ljust(71)), end='')
         print("{}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
-              FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']),
-              end='\n')
+              FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']))
+        # Check for Subtasks
+        if goal[4]:
+            print_sub(int(goal[0] - 1), goal_data)
     print()
 
 
@@ -256,10 +285,9 @@ def add_goal(command_extra):
 
     goal_data.append([len(goal_data) + 1, goal, date, percent, ''])
     update_goal_order()
-    view_goals()
 
 
-def delete_item(task_num, cache_list):
+def delete_item(item_num, cache_list):
     """Removes an item from the task or goal list."""
     if cache_list is deleted_tasks:
         data_list = task_data
@@ -267,15 +295,13 @@ def delete_item(task_num, cache_list):
     elif cache_list is deleted_goals:
         data_list = goal_data
         undo_com = "'undo-goal' or 'ug'"
-    cache_list.append(data_list.pop(task_num))
+    cache_list.append(data_list.pop(item_num))
     print("  Item deleted. Enter {} to restore.".format(undo_com))
 
     if data_list == task_data:
         update_order()
     elif data_list == goal_data:
         update_goal_order()
-        view_goals()
-
 
 
 def complete_task(task_num):
@@ -358,7 +384,6 @@ def complete_goal(task_num):
     completed_goals.append(goal_data.pop(task_num))
     print("  Goal marked as complete. Enter 'uncheck-goal' or 'ucg' to restore.")
     update_goal_order()
-    view_goals()
 
 
 def reset_subs(task_num):
@@ -367,18 +392,18 @@ def reset_subs(task_num):
             task_data[task_num][4][num] = subtask.rstrip('[Done]')
 
 
-def edit_desc(command_extra):
+def edit_desc(command_extra, data_list):
     """Updates a task's description."""
     edit_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    task_num = int(edit_regex.group(1)) - 1
+    item_num = int(edit_regex.group(1)) - 1
 
     if edit_regex.group(2):
-        task_data[task_num][1] = edit_regex.group(2)
+        data_list[item_num][1] = edit_regex.group(2)
     else:
-        print("  Editing: '{}'".format(task_data[task_num][1]))
-        print("  Enter the new task description below:")
+        print("  Editing: '{}'".format(data_list[item_num][1]))
+        print("  Enter the new description below:")
         new_desc = input("  ")
-        task_data[task_num][1] = new_desc
+        data_list[item_num][1] = new_desc
 
 
 def undo_action(cache_list):
@@ -418,35 +443,6 @@ def change_date(command_extra):
     update_order()
 
 
-def change_target(command_extra):
-    """Changes the target date of a goal."""
-    target_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    goal_num = int(target_regex.group(1)) - 1
-    if target_regex.group(2):
-        new_target = target_regex.group(2)
-    else:
-        print("  Enter New Target For {}:".format(goal_data[goal_num][1]))
-        new_target = input("  ")
-    goal_data[goal_num][2] = new_target
-    update_goal_order()
-    view_goals()
-
-
-def change_percentage(command_extra):
-    """Changes the completion percentage of a goal."""
-    percentage_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    goal_num = int(percentage_regex.group(1)) - 1
-    if percentage_regex.group(2):
-        new_percentage = percentage_regex.group(2)
-    else:
-        print("  Enter New Completion Percentage {}:".format(goal_data[goal_num][1]))
-        new_percentage = input("  ")
-    
-    goal_data[goal_num][3] = new_percentage
-    update_goal_order()
-    view_goals()
-
-
 def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
@@ -469,6 +465,33 @@ def add_repeat(command_extra):
     task_data[int(repeat_regex.group(1)) - 1][3] = step
 
 
+def change_target(command_extra):
+    """Changes the target date of a goal."""
+    target_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
+    goal_num = int(target_regex.group(1)) - 1
+    if target_regex.group(2):
+        new_target = target_regex.group(2)
+    else:
+        print("  Enter New Target For {}:".format(goal_data[goal_num][1]))
+        new_target = input("  ")
+    goal_data[goal_num][2] = new_target
+    update_goal_order()
+
+
+def change_percentage(command_extra):
+    """Changes the completion percentage of a goal."""
+    percentage_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
+    goal_num = int(percentage_regex.group(1)) - 1
+    if percentage_regex.group(2):
+        new_percentage = percentage_regex.group(2)
+    else:
+        print("  Enter New Completion Percentage {}:".format(goal_data[goal_num][1]))
+        new_percentage = input("  ")
+    
+    goal_data[goal_num][3] = new_percentage
+    update_goal_order()
+
+
 def remove_repeat(task_num):
     """Removes the repeat flag from a task."""
     task_data[task_num][3] = ''
@@ -488,59 +511,59 @@ def update_goal_order():
         goal[0] = num
 
 
-def add_sub(command_extra):
-    """Adds subtask to a task."""
+def add_sub(command_extra, data_list):
+    """Adds subtask to a task or goal."""
     sub_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    task_num = int(sub_regex.group(1)) - 1
+    item_num = int(sub_regex.group(1)) - 1
     subtask = sub_regex.group(2)
     if not subtask:
-        print("  Enter Subtask:")
+        print("  Enter Subitem:")
         subtask = input("  ")
-    if task_data[task_num][4] == '':
-        task_data[task_num][4] = [subtask]
+    if data_list[item_num][4] == '':
+        data_list[item_num][4] = [subtask]
     else:
-        task_data[task_num][4].append(subtask)
+        data_list[item_num][4].append(subtask)
 
 
-def complete_sub(command_extra):
+def complete_sub(command_extra, data_list):
     """Marks a subtask as complete."""
     subcom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    task_num = int(subcom_regex.group(1)) - 1
+    item_num = int(subcom_regex.group(1)) - 1
     if subcom_regex.group(2):
         sub_num = int(subcom_regex.group(2)) - 1
     else:
-        sub_num = int(input("  Enter the number of the subtask")) - 1
-    task_data[task_num][4][sub_num] = task_data[task_num][4][sub_num] + " [Done]"
+        sub_num = int(input("  Enter the number of the subitem")) - 1
+    data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num] + " [Done]"
 
 
-def delete_sub(command_extra):
+def delete_sub(command_extra, data_list):
     """Removes a subtask."""
     delcom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    task_num = int(delcom_regex.group(1)) - 1
+    item_num = int(delcom_regex.group(1)) - 1
     if delcom_regex.group(2):
         sub_num = int(delcom_regex.group(2)) - 1
     else:
-        sub_num = input("  Enter the number of the subtask")
-    del task_data[task_num][4][sub_num]
+        sub_num = input("  Enter the number of the subitem")
+    del data_list[item_num][4][sub_num]
 
 
-def edit_sub(command_extra):
+def edit_sub(command_extra, data_list):
     """Updates a subtask's description."""
     edits_regex = re.search(r'^(\w*)\s(\w)\s?(.*)?', command_extra)
-    task_num = int(edits_regex.group(1)) - 1
+    item_num = int(edits_regex.group(1)) - 1
     sub_num = int(edits_regex.group(2)) - 1
-    print("  Editing: '{}'".format(task_data[task_num][4][sub_num]))
+    print("  Editing: '{}'".format(data_list[item_num][4][sub_num]))
     if edits_regex.group(3):
-        task_data[task_num][4][sub_num] = edits_regex.group(3)
+        data_list[item_num][4][sub_num] = edits_regex.group(3)
     else:
-        print("  Enter the new subtask description below:")
+        print("  Enter the new subitem description below:")
         new_desc = input("  ")
-        task_data[task_num][4][sub_num] = new_desc
+        data_list[item_num][4][sub_num] = new_desc
 
 
-def print_sub(task_num):
+def print_sub(item_num, data_list):
     """Prints a tasks subtasks."""
-    for subtask in task_data[task_num][4]:
+    for subtask in data_list[item_num][4]:
         if subtask[-6:] == '[Done]':
             undone = subtask.rstrip(' [Done]')
             subtask = strike_text(undone)
