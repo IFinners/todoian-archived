@@ -76,6 +76,9 @@ def decide_action(command):
     elif command_main in ('ct', 'change-target'):
         change_target(command_extra)
 
+    elif command_main in ('cp', 'change-percentage'):
+        change_percentage(command_extra)
+
     elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
 
@@ -429,6 +432,21 @@ def change_target(command_extra):
     view_goals()
 
 
+def change_percentage(command_extra):
+    """Changes the completion percentage of a goal."""
+    percentage_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
+    goal_num = int(percentage_regex.group(1)) - 1
+    if percentage_regex.group(2):
+        new_percentage = percentage_regex.group(2)
+    else:
+        print("  Enter New Completion Percentage {}:".format(goal_data[goal_num][1]))
+        new_percentage = input("  ")
+    
+    goal_data[goal_num][3] = new_percentage
+    update_goal_order()
+    view_goals()
+
+
 def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
@@ -546,7 +564,7 @@ def save_changes():
 
 
 def smart_display():
-    """Checks if Overdue/Tomorrow lists have tasks before printing with Today."""
+    """Checks if Overdue list has tasks before printing alongside Today."""
     if not task_data:
         print()
         print(FONT_DICT['red no u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
