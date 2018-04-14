@@ -40,20 +40,20 @@ def decide_action(command):
         else:
             smart_display()
 
-    elif command_main in ('a', 'add'):
+    elif command_main in ('a', 't', 'add'):
         add_task(command_regex.group(2))
 
-    elif command_main in ('ag', 'add-goal'):
+    elif command_main in ('ag', 'g', 'add-goal'):
         add_goal(command_regex.group(2))
         view_goals()
 
-    elif command_main in ('rm', 'remove'):
+    elif command_main in ('rm', 'r', 'remove'):
         if command_extra in ("all", 'a'):
             task_data.clear()
         else:
             delete_item(int(command_extra) - 1, deleted_tasks)
 
-    elif command_main in ('rmg', 'remove-goal'):
+    elif command_main in ('rg', 'rmg', 'remove-goal'):
         if command_extra in ("all", 'a'):
             goal_data.clear()
         else:
@@ -228,7 +228,11 @@ def view_goals():
         print("    No Goals Found")
         return
     for goal in goal_data:
-        percent_done = int(goal[3]) // 5
+        progress = goal[3]
+        if progress == 'auto':
+            percent_done = auto_percentage(goal[0] - 1) // 5
+        else:
+            percent_done = int(progress) // 5
         print("    {}".format(goal[0]).rjust(6), end='')
         if goal[2]:
             print("| {} [Target: {}]".format(goal[1].upper(), goal[2]).ljust(75),
@@ -241,6 +245,19 @@ def view_goals():
         if goal[4]:
             print_sub(int(goal[0] - 1), goal_data)
     print()
+
+
+def auto_percentage(goal_num):
+    """Calculate percentage completion from percentage of subgoals completed."""
+    num_subs = len(goal_data[goal_num][4])
+    if num_subs == 0:
+        return 0
+    
+    done_subs = 0
+    for sub in goal_data[goal_num][4]:
+        if sub.endswith('[Done]'):
+            done_subs += 1
+    return int((done_subs / num_subs) * 100)
 
 
 def add_task(command_extra):
@@ -281,7 +298,7 @@ def add_goal(command_extra):
     if opt_percent:
         percent = int(opt_percent)
     else:
-        percent = 0
+        percent = 'auto'
 
     goal_data.append([len(goal_data) + 1, goal, date, percent, ''])
     update_goal_order()
@@ -568,7 +585,6 @@ def print_sub(item_num, data_list):
             undone = subtask.rstrip(' [Done]')
             subtask = strike_text(undone)
         print("        +) {}".format(subtask))
-    print()
 
 
 def strike_text(text):
