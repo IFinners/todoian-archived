@@ -156,10 +156,10 @@ def view_overdue():
                      - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
                 print("    {}".format(task[0]).rjust(6)
-                      + "| {}[Due Yesterday]".format(task[1]))
+                      + "| {} [Due Yesterday]".format(task[1]))
             else:
                 print("    {}".format(task[0]).rjust(6)
-                      + "| {}[Due {} Days Ago]".format(task[1], over))
+                      + "| {} [Due {} Days Ago]".format(task[1], over))
             # Check for Subtasks
             if task[4]:
                 print_sub(int(task[0] - 1))
@@ -554,11 +554,6 @@ def smart_display():
     if task_data[0][2] < current_date:
         view_overdue()
     view_today()
-    for task in task_data:
-        if ((dt.strptime(task[2], '%Y-%m-%d')
-            - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
-            view_tomorrow()
-            break
 
 
 def show_help():
