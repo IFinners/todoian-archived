@@ -178,13 +178,14 @@ def view_goals():
     print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n')
     for goal in goal_data:
         percent_done = int(goal[3]) // 5
+        print("    {}".format(goal[0]).rjust(6), end='')
         if goal[2]:
-            print("    {} [Due {}]".format(goal[1].upper(), goal[2]).ljust(75),
+            print("| {} [Due {}]".format(goal[1].upper(), goal[2]).ljust(75),
                   end='')
         else:
-            print("    {}".format(goal[1].upper().ljust(71)), end='')
-        print("{}{}{}{}{}".format(FONT_DICT['green'], '+' * percent_done,
-              FONT_DICT['red'], '-' * (20 - percent_done), FONT_DICT['end']),
+            print("| {}".format(goal[1].upper().ljust(71)), end='')
+        print("{}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
+              FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']),
               end='\n')
     print()
 
@@ -214,10 +215,10 @@ def add_task(command_extra):
 
 def add_goal(command_extra):
     """Adds a goal to the goal list."""
-    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(.*)?', command_extra)
-    task = add_regex.group(1)
-    opt_date = add_regex.group(2)
-    opt_percent = add_regex.group(3)
+    gadd_regex = re.search(r'^"(.*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
+    goal = gadd_regex.group(1)
+    opt_date = gadd_regex.group(2)
+    opt_percent = gadd_regex.group(3)
 
     if opt_date:
         date = opt_date
@@ -229,7 +230,8 @@ def add_goal(command_extra):
     else:
         percent = 0
 
-    goal_data.append([len(goal_data) + 1, task, date, percent, ''])
+    goal_data.append([len(goal_data) + 1, goal, date, percent, ''])
+    update_goal_order()
     view_goals()
 
 
@@ -243,7 +245,7 @@ def delete_task(task_num):
 def delete_goal(goal_num):
     """Deletes a goal"""
     del goal_data[goal_num]
-
+    update_goal_order()
 
 def complete_task(task_num):
     """Marks a task as complete."""
@@ -403,6 +405,11 @@ def update_order():
         task[0] = count
         count += 1
 
+def update_goal_order():
+    """Updates the Numbering of the Goals."""
+    for num, goal in enumerate(goal_data, 1):
+        goal[0] = num
+
 
 def add_sub(command_extra):
     """Adds subtask to a task."""
@@ -483,7 +490,7 @@ def smart_display():
     """Checks if Overdue/Tomorrow lists have tasks before printing with Today."""
     if not task_data:
         print()
-        print(FONT_DICT['red w/o u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
+        print(FONT_DICT['red no u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
         return
     if task_data[0][2] < current_date:
         view_overdue()
@@ -507,9 +514,10 @@ def show_help():
 FONT_DICT = {
    'blue':  '\033[4;94m',
    'green':  '\033[4;92m',
+   'green no u':  '\033[1;92m',
    'orange': '\033[4;93m',
    'red':  '\033[4;91m',
-   'red w/o u':  '\033[1;91m',
+   'red no u':  '\033[1;91m',
    'magenta':  '\033[4;95m',
    'end':  '\033[0m',
 }
@@ -518,14 +526,15 @@ FONT_DICT = {
 with open('data.pickle', 'rb') as fp:
     task_data = pickle.load(fp)
     goal_data = pickle.load(fp)
-
+# goal_data = [[1, "This is a goal", "September", 68]]
 deleted_cache = []
 completed_cache = []
 
 current_date = dt.now().strftime('%Y-%m-%d')
 
 # Initial display
-view_goals()
+if goal_data:
+    view_goals()
 smart_display()
 print('\n')
 
