@@ -73,6 +73,9 @@ def decide_action(command):
     elif command_main in ('cd', 'change-date'):
         change_date(command_extra)
 
+    elif command_main in ('ct', 'change-target'):
+        change_target(command_extra)
+
     elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
 
@@ -198,7 +201,7 @@ def view_goals():
         percent_done = int(goal[3]) // 5
         print("    {}".format(goal[0]).rjust(6), end='')
         if goal[2]:
-            print("| {} [Due {}]".format(goal[1].upper(), goal[2]).ljust(75),
+            print("| {} [Target: {}]".format(goal[1].upper(), goal[2]).ljust(75),
                   end='')
         else:
             print("| {}".format(goal[1].upper().ljust(71)), end='')
@@ -244,7 +247,7 @@ def add_goal(command_extra):
         date = ''
 
     if opt_percent:
-        percent = opt_percent
+        percent = int(opt_percent)
     else:
         percent = 0
 
@@ -263,7 +266,7 @@ def delete_item(task_num, cache_list):
         undo_com = "'undo-goal' or 'ug'"
     cache_list.append(data_list.pop(task_num))
     print("  Item deleted. Enter {} to restore.".format(undo_com))
-    
+
     if data_list == task_data:
         update_order()
     elif data_list == goal_data:
@@ -406,10 +409,24 @@ def change_date(command_extra):
         else:
             task_data[task_num][2] = date_regex.group(2)
     else:
-        print("  Enter new due_date for {}: (YYYY-MM-DD)")
+        print("  Enter New Due Date For {}: (YYYY-MM-DD)".format(task_data[task_num][1]))
         new_date = input("  ")
         task_data[task_num][2] = new_date
     update_order()
+
+
+def change_target(command_extra):
+    """Changes the target date of a goal."""
+    target_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
+    goal_num = int(target_regex.group(1)) - 1
+    if target_regex.group(2):
+        new_target = target_regex.group(2)
+    else:
+        print("  Enter New Target For {}:".format(goal_data[goal_num][1]))
+        new_target = input("  ")
+    goal_data[goal_num][2] = new_target
+    update_goal_order()
+    view_goals()
 
 
 def add_repeat(command_extra):
