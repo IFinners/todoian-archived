@@ -26,6 +26,8 @@ def decide_action(command):
             view_future()
         elif command_extra in ('g', 'goals'):
             view_goals()
+        elif command_extra in ('gs', 'goals-subs'):
+            view_goals(show_subs=True)
         elif command_extra in ('at', 'all-tasks'):
             view_overdue()
             view_today()
@@ -99,7 +101,7 @@ def decide_action(command):
 
     elif command_main in ('sg', 'subgoal'):
         add_sub(command_regex.group(2), goal_data)
-        view_goals()
+        view_goals(show_subs=True)
 
     elif command_main in ('cs', 'comp-subtask'):
         complete_sub(command_extra, task_data)
@@ -112,15 +114,15 @@ def decide_action(command):
 
     elif command_main in ('csg', 'comp-subgoal'):
         complete_sub(command_extra, goal_data)
-        view_goals()
+        view_goals(show_subs=True)
 
     elif command_main in ('rsg', 'remove-subgoal'):
         delete_sub(command_extra, goal_data)
-        view_goals()
+        view_goals(show_subs=True)
 
     elif command_main in ('esg', 'edit-subgoal'):
         edit_sub(command_regex.group(2), goal_data)
-        view_goals()
+        view_goals(show_subs=True)
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
@@ -220,7 +222,7 @@ def view_future():
     print()
 
 
-def view_goals():
+def view_goals(show_subs=False):
     """Prints all goals"""
     print()
     print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n')
@@ -238,13 +240,19 @@ def view_goals():
             print("| {} [Target: {}]".format(goal[1].upper(), goal[2]).ljust(75),
                   end='')
         else:
-            print("| {}".format(goal[1].upper().ljust(71)), end='')
+            print("| {}".format(goal[1].upper().ljust(73)), end='')
+
         print("{}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
               FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']))
         # Check for Subtasks
         if goal[4]:
-            print_sub(int(goal[0] - 1), goal_data)
-    print()
+            if show_subs:
+                print_sub(int(goal[0] - 1), goal_data)
+    if show_subs:
+        print(end='\n')
+    else:
+        print()            
+        print("        Subgoals Are Hidden. Use 'ls gs' To View Them.", end='\n\n')
 
 
 def auto_percentage(goal_num):
@@ -659,7 +667,6 @@ while True:
     else:
         try:
             decide_action(action)
-            print('\n')
         except IndexError:
             print()
             print("  No Item Found at that Position in the list or Cache - "
