@@ -29,21 +29,14 @@ def decide_action(command):
         elif command_extra in ('gs', 'goals-subs'):
             view_goals(show_subs=True)
         elif command_extra in ('at', 'all-tasks'):
-            view_overdue()
-            view_today()
-            view_tomorrow()
-            view_future()
+            smart_display()
         elif command_extra in ('a', 'all'):
             view_goals()
-            view_overdue()
-            view_today()
-            view_tomorrow()
-            view_future()
-        else:
             smart_display()
 
     elif command_main in ('a', 't', 'add'):
         add_task(command_regex.group(2))
+        smart_display()
 
     elif command_main in ('ag', 'g', 'add-goal'):
         add_goal(command_regex.group(2))
@@ -54,6 +47,7 @@ def decide_action(command):
             task_data.clear()
         else:
             delete_item(int(command_extra) - 1, deleted_tasks)
+        smart_display()
 
     elif command_main in ('rg', 'rmg', 'remove-goal'):
         if command_extra in ("all", 'a'):
@@ -67,6 +61,7 @@ def decide_action(command):
             complete_today()
         else:
             complete_task(int(command_extra) - 1)
+        smart_display()
 
     elif command_main in ('cg', 'complete-goal'):
         complete_goal(int(command_extra) - 1)
@@ -74,6 +69,7 @@ def decide_action(command):
 
     elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2), task_data)
+        smart_display()
 
     elif command_main in ('eg', 'edg', 'edit-goal'):
         edit_desc(command_regex.group(2), goal_data)
@@ -81,6 +77,7 @@ def decide_action(command):
 
     elif command_main in ('cd', 'change-date'):
         change_date(command_extra)
+        smart_display()
 
     elif command_main in ('ct', 'change-target'):
         change_target(command_regex.group(2))
@@ -98,6 +95,7 @@ def decide_action(command):
 
     elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2), task_data)
+        smart_display()
 
     elif command_main in ('sg', 'subgoal'):
         add_sub(command_regex.group(2), goal_data)
@@ -105,12 +103,15 @@ def decide_action(command):
 
     elif command_main in ('cs', 'comp-subtask'):
         complete_sub(command_extra, task_data)
+        smart_display()
 
     elif command_main in ('rs', 'remove-subtask'):
         delete_sub(command_extra, task_data)
+        smart_display()
 
     elif command_main in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2), task_data)
+        smart_display()
 
     elif command_main in ('csg', 'comp-subgoal'):
         complete_sub(command_extra, goal_data)
@@ -126,9 +127,11 @@ def decide_action(command):
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
+        smart_display()
 
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_tasks)
+        smart_display()
 
     elif command.lower() in ('ug', 'undo-goal'):
         undo_action(deleted_goals)
@@ -602,7 +605,6 @@ def strike_text(text):
         striked = striked + char + '\u0336'
     return striked
 
-# MISC FUNCTIONS
 def save_changes():
     """Writes changes to file."""
     with open ('data.pickle', 'wb') as fp:
@@ -610,8 +612,8 @@ def save_changes():
         pickle.dump(goal_data, fp)
 
 
-def smart_display():
-    """Checks if Overdue list has tasks before printing alongside Today."""
+def smart_display(initial=False):
+    """Checks if list has tasks before printing alongside Today."""
     if not task_data:
         print()
         print(FONT_DICT['red no u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
@@ -619,6 +621,17 @@ def smart_display():
     if task_data[0][2] < current_date:
         view_overdue()
     view_today()
+    if initial:
+        return
+
+    for task in task_data:
+        if ((dt.strptime(task[2], '%Y-%m-%d')
+            - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
+            view_tomorrow()
+            break
+    if ((dt.strptime(task_data[-1][2], '%Y-%m-%d')
+        - dt.strptime(current_date, '%Y-%m-%d')).days) > 1:
+        view_future()
 
 
 def show_help():
@@ -657,7 +670,7 @@ current_date = dt.now().strftime('%Y-%m-%d')
 # Initial display
 if goal_data:
     view_goals()
-smart_display()
+smart_display(initial=True)
 print('\n')
 
 while True:
@@ -677,5 +690,4 @@ while True:
                   "Try Again or Enter 'h' or 'help' for Usage Instructions.")
 
         if action[:2] != 'ls' and action[:1] != 'h' and action[:4] != 'help':
-            smart_display()
             save_changes()
