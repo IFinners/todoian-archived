@@ -262,7 +262,7 @@ def view_goals(show_subs=False):
     if show_subs:
         print(end='\n')
     else:
-        print()            
+        print()
         print("        Subgoals Are Hidden. Use 'ls gs' To View Them", end='\n\n')
 
 
@@ -271,7 +271,7 @@ def auto_percentage(goal_num):
     num_subs = len(goal_data[goal_num][4])
     if num_subs == 0:
         return 0
-    
+
     done_subs = 0
     for sub in goal_data[goal_num][4]:
         if sub.endswith('[Done]'):
@@ -524,7 +524,7 @@ def change_percentage(command_extra):
     else:
         print("  Enter New Completion Percentage {}:".format(goal_data[goal_num][1]))
         new_percentage = input("  ")
-    
+
     goal_data[goal_num][3] = new_percentage
     update_goal_order()
 
@@ -635,14 +635,17 @@ def save_changes():
 
 
 def smart_display(initial=False):
-    """Checks if list has tasks before printing alongside Today."""
+    """Checks if list has tasks before dispaying it."""
     if not task_data:
         print()
         print(FONT_DICT['red no u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
         return
     if task_data[0][2] < current_date:
         view_overdue()
-    view_today()
+    for task in task_data:
+        if task[2] == current_date:
+            view_today()
+            break
     if initial:
         return
 
