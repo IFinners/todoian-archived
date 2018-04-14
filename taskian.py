@@ -29,44 +29,55 @@ def decide_action(command):
             view_today()
             view_tomorrow()
             view_future()
+        elif command_extra in ('g', 'goals'):
+            view_goals()
         else:
             smart_display()
 
     elif command_main in ('a', 'add'):
         add_task(command_regex.group(2))
 
+    elif command_main in ('ag', 'add goal'):
+        add_goal(command_regex.group(2))
+
     elif command_main in ('rm', 'remove'):
         if command_extra in ("all", 'a'):
             task_data.clear()
         else:
-            delete_task(int(command_regex.group(2)) - 1)
+            delete_task(int(command_extra) - 1)
 
+    elif command_main in ('rmg', 'remove goal'):
+        if command_extra in ("all", 'a'):
+            goal_data.clear()
+        else:
+            delete_goal(int(command_extra) - 1)    
+    
     elif command_main in ('c', 'complete'):
         if 't' in command_extra or 'today' in command_extra:
             complete_today()
         else:
-            complete_task(int(command_regex.group(2)) - 1)
+            complete_task(int(command_extra) - 1)
 
     elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
 
     elif command_main in ('cd', 'change-date'):
-        change_date(command_regex.group(2))
+        change_date(command_extra)
 
     elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
 
     elif command_main in ('rr', 'remove-repeat'):
-        remove_repeat(int(command_regex.group(2)) - 1)
+        remove_repeat(int(command_extra) - 1)
 
     elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2))
 
     elif command_main in ('cs', 'comp-subtask'):
-        complete_sub(command_regex.group(2))
+        complete_sub(command_extra)
 
     elif command_main in ('rs', 'remove-subtask'):
-        delete_sub(command_regex.group(2))
+        delete_sub(command_extra)
 
     elif command_main in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2))
@@ -161,13 +172,25 @@ def view_future():
     print()
 
 
+def view_goals():
+    """Prints all goals"""
+    print()
+    print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], '\n')
+    for goal in goal_data:
+        percent_done = int(goal[3]) // 5
+        print("    {}  [{}{}{}{}{}]".format(goal[1].ljust(75).upper(), FONT_DICT['green'],
+            '+' * percent_done, FONT_DICT['red'], '-' * (20 - percent_done),
+            FONT_DICT['end']))
+        print()
+    print()
+
+
 def add_task(command_extra):
     """Adds system argument task to the task list."""
     add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(.*)?', command_extra)
     task = add_regex.group(1)
     opt_date = add_regex.group(2)
     opt_repeat = add_regex.group(3)
-    print(opt_repeat)
 
     if opt_date:
         date = opt_date
@@ -185,11 +208,37 @@ def add_task(command_extra):
     update_order()
 
 
+def add_goal(command_extra):
+    """Adds a goal to the goal list."""
+    add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(.*)?', command_extra)
+    task = add_regex.group(1)
+    opt_date = add_regex.group(2)
+    opt_percent = add_regex.group(3)
+
+    if opt_date:
+        date = opt_date
+    else:
+        date = ''
+
+    if opt_percent:
+        percent = opt_percent
+    else:
+        percent = 0
+
+    goal_data.append([len(goal_data) + 1, task, date, percent, ''])
+    view_goals()
+
+
 def delete_task(task_num):
     """Removes a task from the task list."""
     deleted_cache.append(task_data.pop(task_num))
     update_order()
     print("  Task deleted. Enter 'undo' or 'u' to restore.")
+
+
+def delete_goal(goal_num):
+    """Deletes a goal"""
+    del goal_data[goal_num]
 
 
 def complete_task(task_num):
@@ -418,11 +467,12 @@ def strike_text(text):
         striked = striked + char + '\u0336'
     return striked
 
-
+# MISC FUNCTIONS
 def save_changes():
     """Writes changes to file."""
     with open ('data.pickle', 'wb') as fp:
         pickle.dump(task_data, fp)
+        pickle.dump(goal_data, fp)
 
 
 def smart_display():
@@ -456,12 +506,14 @@ FONT_DICT = {
    'orange': '\033[4;93m',
    'red':  '\033[4;91m',
    'red w/o u':  '\033[1;91m',
+   'magenta':  '\033[4;95m',
    'end':  '\033[0m',
 }
 
 
 with open('data.pickle', 'rb') as fp:
     task_data = pickle.load(fp)
+    goal_data = pickle.load(fp)
 
 deleted_cache = []
 completed_cache = []
@@ -469,6 +521,7 @@ completed_cache = []
 current_date = dt.now().strftime('%Y-%m-%d')
 
 # Initial display
+view_goals()
 smart_display()
 print('\n')
 
