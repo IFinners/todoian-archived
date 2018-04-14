@@ -175,13 +175,17 @@ def view_future():
 def view_goals():
     """Prints all goals"""
     print()
-    print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], '\n')
+    print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n')
     for goal in goal_data:
         percent_done = int(goal[3]) // 5
-        print("    {}  [{}{}{}{}{}]".format(goal[1].ljust(75).upper(), FONT_DICT['green'],
-            '+' * percent_done, FONT_DICT['red'], '-' * (20 - percent_done),
-            FONT_DICT['end']))
-        print()
+        if goal[2]:
+            print("    {} [Due {}]".format(goal[1].upper(), goal[2]).ljust(75),
+                  end='')
+        else:
+            print("    {}".format(goal[1].upper().ljust(71)), end='')
+        print("{}{}{}{}{}".format(FONT_DICT['green'], '+' * percent_done,
+              FONT_DICT['red'], '-' * (20 - percent_done), FONT_DICT['end']),
+              end='\n')
     print()
 
 
