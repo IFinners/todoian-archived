@@ -42,7 +42,10 @@ def decide_action(command):
             delete_task(int(command_regex.group(2)) - 1)
 
     elif command_main in ('c', 'complete'):
-        complete_task(int(command_regex.group(2)) - 1)
+        if 't' in command_extra or 'today' in command_extra:
+            complete_today()
+        else:
+            complete_task(int(command_regex.group(2)) - 1)
 
     elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2))
@@ -214,6 +217,19 @@ def complete_task(task_num):
     update_order()
 
 
+def complete_today():
+    """Mark all of today's tasks as complete."""
+    to_complete_list = []
+    for task in task_data:
+        if task[2] == current_date:
+            to_complete_list.append(task[0] - 1)
+    
+    offset = 0
+    for task_num in to_complete_list:
+        complete_task(task_num - offset)
+        offset += 1
+
+
 def comp_list_rep(task_num, repeat):
     """Calculates the next day due in the repeat list and changes the due date."""
     # Find the name of the day the current due date is set to
@@ -224,7 +240,7 @@ def comp_list_rep(task_num, repeat):
         day_position = repeat.index(current_day)
     except ValueError:
         print("  Is the due date one of the named repeat days? If not, please "
-              "change the date to one of the repeat days and try again.")
+              "change it to one of the repeat days and try again.")
         return
        
     if day_position == len(repeat) - 1:
