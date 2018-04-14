@@ -28,10 +28,10 @@ def decide_action(command):
             view_goals()
         elif command_extra in ('gs', 'goals-subs'):
             view_goals(show_subs=True)
-        elif command_extra in ('at', 'all-tasks'):
-            smart_display()
         elif command_extra in ('a', 'all'):
             view_goals()
+            smart_display()
+        else:
             smart_display()
 
     elif command_main in ('a', 't', 'add'):
@@ -104,6 +104,14 @@ def decide_action(command):
     elif command_main in ('cs', 'comp-subtask'):
         complete_sub(command_extra, task_data)
         smart_display()
+
+    elif command_main in ('us', 'uncomp-subtask'):
+        uncomplete_sub(command_extra, task_data)
+        smart_display()
+
+    elif command_main in ('usg', 'uncomp-subgoal'):
+        uncomplete_sub(command_extra, goal_data)
+        view_goals(show_subs=True)
 
     elif command_main in ('rs', 'remove-subtask'):
         delete_sub(command_extra, task_data)
@@ -255,7 +263,7 @@ def view_goals(show_subs=False):
         print(end='\n')
     else:
         print()            
-        print("        Subgoals Are Hidden. Use 'ls gs' To View Them.", end='\n\n')
+        print("        Subgoals Are Hidden. Use 'ls gs' To View Them", end='\n\n')
 
 
 def auto_percentage(goal_num):
@@ -455,6 +463,7 @@ def undo_action(cache_list):
         update_goal_order()
         view_goals()
 
+
 def change_date(command_extra):
     """Changes the due date of a task."""
     date_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
@@ -533,6 +542,7 @@ def update_order():
         task[0] = count
         count += 1
 
+
 def update_goal_order():
     """Updates the Numbering of the Goals."""
     for num, goal in enumerate(goal_data, 1):
@@ -562,6 +572,17 @@ def complete_sub(command_extra, data_list):
     else:
         sub_num = int(input("  Enter the number of the subitem")) - 1
     data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num] + " [Done]"
+
+
+def uncomplete_sub(command_extra, data_list):
+    """Unmarks a subtask as complete."""
+    subuncom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
+    item_num = int(subuncom_regex.group(1)) - 1
+    if subuncom_regex.group(2):
+        sub_num = int(subuncom_regex.group(2)) - 1
+    else:
+        sub_num = int(input("  Enter the number of the subitem")) - 1
+    data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num].strip(' [Done]')
 
 
 def delete_sub(command_extra, data_list):
@@ -604,6 +625,7 @@ def strike_text(text):
     for char in text:
         striked = striked + char + '\u0336'
     return striked
+
 
 def save_changes():
     """Writes changes to file."""
