@@ -64,10 +64,12 @@ def decide_action(command):
             complete_today()
         else:
             complete_task(int(command_extra) - 1)
+            update_order()
         smart_display()
 
     elif command_main in ('cg', 'complete-goal'):
         complete_goal(int(command_extra) - 1)
+        update_order()
         view_goals()
 
     elif command_main in ('e', 'ed', 'edit'):
@@ -175,6 +177,10 @@ def decide_action(command):
 
     elif command.lower() in ('h', 'help'):
         show_help()
+
+    else:
+        print("  Command Not Recognised - Try Again or "
+              "Enter 'h' For Usage Instructions.")
 
 
 def view_today():
@@ -327,7 +333,7 @@ def add_task(command_extra):
 
 def add_goal(command_extra):
     """Adds a goal to the goal list."""
-    gadd_regex = re.search(r'^"([^"]*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
+    gadd_regex = re.search(r'^"(.*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
     goal = gadd_regex.group(1)
     opt_date = gadd_regex.group(2)
     opt_percent = gadd_regex.group(3)
@@ -668,15 +674,22 @@ def smart_display(mini=False):
     """Checks if list has tasks before dispaying it."""
     if not task_data:
         print()
-        print(FONT_DICT['red no u'] + "  NO TASKS TO DISPLAY" + FONT_DICT['end'])
+        print(FONT_DICT['red no u'] + "    NO TASKS TO DISPLAY" + FONT_DICT['end'])
         return
+    empty = True
     if task_data[0][2] < current_date:
         view_overdue()
+        empty is False
     for task in task_data:
         if task[2] == current_date:
             view_today()
+            empty is False
             break
     if mini:
+        if empty:
+            print()
+            print(FONT_DICT['green no u'] + "    NO TASKS OVERDUE OR DUE TODAY"
+                  + FONT_DICT['end'], end='\n\n')
         return
 
     for task in task_data:
