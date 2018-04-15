@@ -36,6 +36,7 @@ def decide_action(command):
 
     elif command_main in ('a', 't', 'add'):
         add_task(command_regex.group(2))
+        update_order()
         smart_display()
 
     elif command_main in ('ag', 'g', 'add-goal'):
@@ -47,6 +48,7 @@ def decide_action(command):
             task_data.clear()
         else:
             delete_item(int(command_extra) - 1, deleted_tasks)
+            update_order()
         smart_display()
 
     elif command_main in ('rg', 'rmg', 'remove-goal'):
@@ -54,6 +56,7 @@ def decide_action(command):
             goal_data.clear()
         else:
             delete_item(int(command_extra) - 1, deleted_goals)
+            update_order()
         view_goals()
 
     elif command_main in ('c', 'complete'):
@@ -77,6 +80,7 @@ def decide_action(command):
 
     elif command_main in ('cd', 'change-date'):
         change_date(command_extra)
+        update_order()
         smart_display()
 
     elif command_main in ('ct', 'change-target'):
@@ -95,10 +99,21 @@ def decide_action(command):
 
     elif command_main in ('mv', 'm', 'move'):
         move_item(command_extra, task_data)
+        update_order()
+        smart_display()
 
     elif command_main in ('mvg', 'mg', 'move-goal'):
         move_item(command_extra, goal_data)
+        update_order()
         view_goals()
+
+    elif command_main in ('mvs', 'ms', 'move-subtask'):
+        move_sub(command_extra, task_data)
+        smart_display()
+
+    elif command_main in ('mvsg', 'msg', 'move-subgoal'):
+        move_sub(command_extra, goal_data)
+        view_goals(show_subs=True)
 
     elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2), task_data)
@@ -146,10 +161,12 @@ def decide_action(command):
 
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_tasks)
+        update_order()
         smart_display()
 
     elif command.lower() in ('ug', 'undo-goal'):
         undo_action(deleted_goals)
+        update_order()
         view_goals()
 
     elif command.lower() in ('ucg', 'uncheck-goal'):
@@ -306,7 +323,6 @@ def add_task(command_extra):
     else:
         repeat = ''
     task_data.append([len(task_data) + 1, task, date, repeat, ''])
-    update_order()
 
 
 def add_goal(command_extra):
@@ -327,7 +343,6 @@ def add_goal(command_extra):
         percent = 'auto'
 
     goal_data.append([len(goal_data) + 1, goal, date, percent, ''])
-    update_goal_order()
 
 
 def delete_item(item_num, cache_list):
@@ -340,11 +355,6 @@ def delete_item(item_num, cache_list):
         undo_com = "'undo-goal' or 'ug'"
     cache_list.append(data_list.pop(item_num))
     print("  Item deleted. Enter {} to restore.".format(undo_com))
-
-    if data_list == task_data:
-        update_order()
-    elif data_list == goal_data:
-        update_goal_order()
 
 
 def complete_task(task_num):
@@ -369,7 +379,6 @@ def complete_task(task_num):
     else:
         completed_tasks.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
-    update_order()
 
 
 def complete_today():
@@ -419,14 +428,12 @@ def comp_list_rep(task_num, repeat):
         reset_subs(task_num)
 
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
-    update_order()
 
 
 def complete_goal(task_num):
     """Moves a goal to the completed cache."""
     completed_goals.append(goal_data.pop(task_num))
     print("  Goal marked as complete. Enter 'uncheck-goal' or 'ucg' to restore.")
-    update_goal_order()
 
 
 def move_item(command_extra, data_list):
@@ -437,15 +444,23 @@ def move_item(command_extra, data_list):
         new_position = int(move_regex.group(2)) - 1
     else:
         print("  Moving '{}'".format(data_list[item_num][1]))
-        new_position = int(input("  Enter the item's new position: "))
+        new_position = int(input("  Enter the item's new position: ")) - 1
 
     data_list.insert(new_position, data_list.pop(item_num))
-    if data_list is task_data:
-        update_order()
-        smart_display()
+
+
+def move_sub(command_extra, data_list):
+    """Change a subitem's position in the list."""
+    moves_regex = re.search(r'^(\d*)\s(\d*)\s?(\d*)?', command_extra)
+    item_num = int(moves_regex.group(1)) - 1
+    subitem_num = int(moves_regex.group(2)) - 1
+    if moves_regex.group(3):
+        new_position = int(moves_regex.group(3)) - 1
     else:
-        update_goal_order()
-        view_goals()
+        print("  Moving '{}'".format(data_list[item_num][4][subitem_num]))
+        new_position = int(input("  Enter the item's new position: ")) - 1
+
+    data_list[item_num][4].insert(new_position, data_list[item_num][4].pop(subitem_num))
 
 
 def reset_subs(task_num):
@@ -483,11 +498,6 @@ def undo_action(cache_list):
                 del task_data[int(task[0]) - 1]
                 break
     data_list.append(cache_list.pop(-1))
-    if data_list is task_data:
-        update_order()
-    elif data_list is goal_data:
-        update_goal_order()
-        view_goals()
 
 
 def change_date(command_extra):
@@ -503,7 +513,6 @@ def change_date(command_extra):
         print("  Enter New Due Date For {}: (YYYY-MM-DD)".format(task_data[task_num][1]))
         new_date = input("  ")
         task_data[task_num][2] = new_date
-    update_order()
 
 
 def add_repeat(command_extra):
@@ -538,7 +547,6 @@ def change_target(command_extra):
         print("  Enter New Target For {}:".format(goal_data[goal_num][1]))
         new_target = input("  ")
     goal_data[goal_num][2] = new_target
-    update_goal_order()
 
 
 def change_percentage(command_extra):
@@ -552,7 +560,6 @@ def change_percentage(command_extra):
         new_percentage = input("  ")
 
     goal_data[goal_num][3] = new_percentage
-    update_goal_order()
 
 
 def remove_repeat(task_num):
@@ -561,16 +568,13 @@ def remove_repeat(task_num):
 
 
 def update_order():
-    """Updates the numbering of the tasks."""
+    """Updates the numbering of the tasks and goals."""
     task_data.sort(key=lambda x: x[2])
     count = 1
     for task in task_data:
         task[0] = count
         count += 1
 
-
-def update_goal_order():
-    """Updates the Numbering of the Goals."""
     for num, goal in enumerate(goal_data, 1):
         goal[0] = num
 
