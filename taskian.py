@@ -32,7 +32,7 @@ def decide_action(command):
             view_goals()
             smart_display()
         else:
-            smart_display()
+            smart_display(mini=True)
 
     elif command_main in ('a', 't', 'add'):
         add_task(command_regex.group(2))
@@ -93,8 +93,11 @@ def decide_action(command):
     elif command_main in ('rr', 'remove-repeat'):
         remove_repeat(int(command_extra) - 1)
 
-    elif command_main in ('mv', 'm', 'move-goal'):
-        move_goal(command_extra)
+    elif command_main in ('mv', 'm', 'move'):
+        move_item(command_extra, task_data)
+
+    elif command_main in ('mvg', 'mg', 'move-goal'):
+        move_item(command_extra, goal_data)
         view_goals()
 
     elif command_main in ('s', 'subtask'):
@@ -426,18 +429,23 @@ def complete_goal(task_num):
     update_goal_order()
 
 
-def move_goal(command_extra):
+def move_item(command_extra, data_list):
     """Change a goals position in the list."""
     move_regex = re.search(r'^(\d*)\s?(\d*)?', command_extra)
     item_num = int(move_regex.group(1)) - 1
     if move_regex.group(2):
         new_position = int(move_regex.group(2)) - 1
     else:
-        print("  Moving '{}'".format(goal_data[item_num][1]))
-        new_position = int(input("  Enter the goal's new position: "))
-    
-    goal_data.insert(new_position, goal_data.pop(item_num))
-    update_goal_order()
+        print("  Moving '{}'".format(data_list[item_num][1]))
+        new_position = int(input("  Enter the item's new position: "))
+
+    data_list.insert(new_position, data_list.pop(item_num))
+    if data_list is task_data:
+        update_order()
+        smart_display()
+    else:
+        update_goal_order()
+        view_goals()
 
 
 def reset_subs(task_num):
@@ -652,7 +660,7 @@ def save_changes():
         pickle.dump(goal_data, fp)
 
 
-def smart_display(initial=False):
+def smart_display(mini=False):
     """Checks if list has tasks before dispaying it."""
     if not task_data:
         print()
@@ -664,7 +672,7 @@ def smart_display(initial=False):
         if task[2] == current_date:
             view_today()
             break
-    if initial:
+    if mini:
         return
 
     for task in task_data:
@@ -713,7 +721,7 @@ current_date = dt.now().strftime('%Y-%m-%d')
 # Initial display
 if goal_data:
     view_goals()
-smart_display(initial=True)
+smart_display(mini=True)
 print('\n')
 
 while True:
@@ -732,5 +740,4 @@ while True:
             print("  Did You Forget A Number For The Item/Subitem in Your Command? - "
                   "Try Again or Enter 'h' or 'help' for Usage Instructions.")
 
-        if action[:2] != 'ls' and action[:1] != 'h' and action[:4] != 'help':
-            save_changes()
+        save_changes()
