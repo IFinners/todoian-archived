@@ -93,6 +93,10 @@ def decide_action(command):
     elif command_main in ('rr', 'remove-repeat'):
         remove_repeat(int(command_extra) - 1)
 
+    elif command_main in ('mv', 'm', 'move-goal'):
+        move_goal(command_extra)
+        view_goals()
+
     elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2), task_data)
         smart_display()
@@ -419,6 +423,20 @@ def complete_goal(task_num):
     """Moves a goal to the completed cache."""
     completed_goals.append(goal_data.pop(task_num))
     print("  Goal marked as complete. Enter 'uncheck-goal' or 'ucg' to restore.")
+    update_goal_order()
+
+
+def move_goal(command_extra):
+    """Change a goals position in the list."""
+    move_regex = re.search(r'^(\d*)\s?(\d*)?', command_extra)
+    item_num = int(move_regex.group(1)) - 1
+    if move_regex.group(2):
+        new_position = int(move_regex.group(2)) - 1
+    else:
+        print("  Moving '{}'".format(goal_data[item_num][1]))
+        new_position = int(input("  Enter the goal's new position: "))
+    
+    goal_data.insert(new_position, goal_data.pop(item_num))
     update_goal_order()
 
 
