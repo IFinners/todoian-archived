@@ -281,7 +281,7 @@ def auto_percentage(goal_num):
 
     done_subs = 0
     for sub in goal_data[goal_num][4]:
-        if sub.endswith('[Done]'):
+        if sub.endswith('^'):
             done_subs += 1
     return int((done_subs / num_subs) * 100)
 
@@ -451,7 +451,7 @@ def move_item(command_extra, data_list):
 def reset_subs(task_num):
     """Resets subtasks to non-completed status"""
     for num, subtask in enumerate(task_data[task_num][4]):
-            task_data[task_num][4][num] = subtask.rstrip('[Done]')
+            task_data[task_num][4][num] = subtask.rstrip('^')
 
 
 def edit_desc(command_extra, data_list):
@@ -597,7 +597,7 @@ def complete_sub(command_extra, data_list):
         sub_num = int(subcom_regex.group(2)) - 1
     else:
         sub_num = int(input("  Enter the number of the subitem")) - 1
-    data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num] + " [Done]"
+    data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num] + '^'
 
 
 def uncomplete_sub(command_extra, data_list):
@@ -608,7 +608,7 @@ def uncomplete_sub(command_extra, data_list):
         sub_num = int(subuncom_regex.group(2)) - 1
     else:
         sub_num = int(input("  Enter the number of the subitem")) - 1
-    data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num].strip(' [Done]')
+    data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num].rstrip('^')
 
 
 def delete_sub(command_extra, data_list):
@@ -639,8 +639,8 @@ def edit_sub(command_extra, data_list):
 def print_sub(item_num, data_list):
     """Prints a tasks subtasks."""
     for subtask in data_list[item_num][4]:
-        if subtask[-6:] == '[Done]':
-            undone = subtask.rstrip(' [Done]')
+        if subtask.endswith('^'):
+            undone = subtask.rstrip('^')
             subtask = strike_text(undone)
         print("        +) {}".format(subtask))
 
