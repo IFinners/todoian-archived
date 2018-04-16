@@ -31,15 +31,17 @@ def decide_action(command):
         elif command_extra in ('a', 'all'):
             view_goals()
             smart_display()
+        elif command_extra.startswith('tg') or command_extra.startswith('tag'):
+            view_tag(command_extra)
         else:
             smart_display(mini=True)
 
-    elif command_main in ('a', 't', 'add'):
+    elif command_main in ('a', 't' 'add'):
         add_task(command_regex.group(2))
         update_order()
         smart_display()
 
-    elif command_main in ('ag', 'g', 'add-goal'):
+    elif command_main in ('g', 'ag', 'add-goal'):
         add_goal(command_regex.group(2))
         view_goals()
 
@@ -97,7 +99,7 @@ def decide_action(command):
         add_repeat(command_regex.group(2))
 
     elif command_main in ('rr', 'remove-repeat'):
-        remove_repeat(int(command_extra) - 1)
+        remove_value(task_data, int(command_extra) - 1, 3)
 
     elif command_main in ('mv', 'm', 'move'):
         move_item(command_extra, task_data)
@@ -156,6 +158,14 @@ def decide_action(command):
     elif command_main in ('esg', 'edit-subgoal'):
         edit_sub(command_regex.group(2), goal_data)
         view_goals(show_subs=True)
+
+    elif command_main in ('at', 'add-tag'):
+        change_tag(command_regex.group(2), task_data)
+        smart_display(mini=True)
+
+    elif command_main in ('agt', 'add-goal-tag'):
+        change_tag(command_regex.group(2), goal_data)
+        smart_display(mini=True)
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
@@ -309,6 +319,30 @@ def auto_percentage(goal_num):
     return int((done_subs / num_subs) * 100)
 
 
+def view_tag(command_extra):
+    """Displays all Goals and Tasks with a specified tag."""
+    tag_regex = re.search(r'^(\w*)\s?(\w*)?', command_extra)
+    print(command_extra)
+    tag = tag_regex.group(2).lower()
+    print(tag)
+    if not tag:
+        tag = input("  Enter the Tag You Wish to View: ").lower()
+    print()
+    print('  ' + FONT_DICT['magenta'] + "GOALS TAGGED WITH "
+          + tag.upper() + FONT_DICT['end'])
+    for goal in goal_data:
+        if tag in goal[5]:
+            print("    {}| {} ({})".format(goal[0], goal[1], goal[2]))
+    print()
+
+    print('  ' + FONT_DICT['green'] + "TASKS TAGGED WITH "
+          + tag.upper() + FONT_DICT['end'])
+    for task in task_data:
+        if tag in task[5]:
+            print("    {}| {} ({})".format(task[0], task[1], task[2]))
+    print()
+
+
 def add_task(command_extra):
     """Adds system argument task to the task list."""
     add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(.*)?', command_extra)
@@ -328,7 +362,7 @@ def add_task(command_extra):
             repeat = opt_repeat
     else:
         repeat = ''
-    task_data.append([len(task_data) + 1, task, date, repeat, ''])
+    task_data.append([len(task_data) + 1, task, date, repeat, '', ''])
 
 
 def add_goal(command_extra):
@@ -348,7 +382,7 @@ def add_goal(command_extra):
     else:
         percent = 'auto'
 
-    goal_data.append([len(goal_data) + 1, goal, date, percent, ''])
+    goal_data.append([len(goal_data) + 1, goal, date, percent, '', ''])
 
 
 def delete_item(item_num, cache_list):
@@ -525,7 +559,6 @@ def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     command_step = repeat_regex.group(2)
-    print(command_step)
     if command_step:
         if ',' in command_step:
             step = command_step.split(',')
@@ -568,9 +601,9 @@ def change_percentage(command_extra):
     goal_data[goal_num][3] = new_percentage
 
 
-def remove_repeat(task_num):
-    """Removes the repeat flag from a task."""
-    task_data[task_num][3] = ''
+def remove_value(data_list, task_num, value_position):
+    """Removes a value from an item."""
+    data_list[task_num][value_position] = ''
 
 
 def update_order():
@@ -661,6 +694,20 @@ def strike_text(text):
     for char in text:
         striked = striked + char + '\u0336'
     return striked
+
+
+def change_tag(command_extra, data_list):
+    """Updates the tag(s) of a Task or Goal."""
+    tag_regex = re.search(r'^(\d*)\s?(.*)?', command_extra)
+    item_num = int(tag_regex.group(1)) - 1
+    command_tag = tag_regex.group(2)
+    if command_tag:
+        tag = command_tag.lower().split(',')
+    else:
+        print("  Enter your tag(s) here. If multiple, seperate them with a comma:")
+        tag = input("  ").lower().split(',')
+
+    data_list[item_num][5] = tag
 
 
 def save_changes():
