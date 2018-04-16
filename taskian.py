@@ -679,11 +679,11 @@ def smart_display(mini=False):
     empty = True
     if task_data[0][2] < current_date:
         view_overdue()
-        empty is False
+        empty = False
     for task in task_data:
         if task[2] == current_date:
             view_today()
-            empty is False
+            empty = False
             break
     if mini:
         if empty:
