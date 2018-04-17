@@ -288,12 +288,11 @@ def view_goals(show_subs=False):
             percent_done = int(progress) // 5
         print("    {}".format(goal[0]).rjust(6), end='')
         if goal[2]:
-            print("| {} [Target: {}]".format(goal[1].upper(), goal[2]).ljust(75),
-                  end='')
+            print("| {} [Target: {}]".format(goal[1].upper(), goal[2]))
         else:
-            print("| {}".format(goal[1].upper().ljust(73)), end='')
+            print("| {}".format(goal[1].upper()))
 
-        print("{}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
+        print("        {}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
               FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']))
         # Check for Subtasks
         if goal[4]:
@@ -428,10 +427,8 @@ def complete_today():
         if task[2] == current_date:
             to_complete_list.append(task[0] - 1)
 
-    offset = 0
     for task_num in to_complete_list:
-        complete_task(task_num - offset)
-        offset += 1
+        complete_task(task_num)
 
 
 def comp_list_rep(task_num, repeat):
@@ -686,6 +683,7 @@ def print_sub(item_num, data_list):
             undone = subtask.rstrip('^')
             subtask = strike_text(undone)
         print("        +) {}".format(subtask))
+    print()
 
 
 def strike_text(text):
