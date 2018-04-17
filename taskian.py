@@ -664,7 +664,7 @@ def delete_sub(command_extra, data_list):
 
 def edit_sub(command_extra, data_list):
     """Updates a subtask's description."""
-    edits_regex = re.search(r'^(\w*)\s(\w)\s?(.*)?', command_extra)
+    edits_regex = re.search(r'^(\d*)\s(\d*)\s?(.*)?', command_extra)
     item_num = int(edits_regex.group(1)) - 1
     sub_num = int(edits_regex.group(2)) - 1
     print("  Editing: '{}'".format(data_list[item_num][4][sub_num]))
@@ -678,11 +678,11 @@ def edit_sub(command_extra, data_list):
 
 def print_sub(item_num, data_list):
     """Prints a tasks subtasks."""
-    for subtask in data_list[item_num][4]:
+    for num, subtask in enumerate(data_list[item_num][4], 1):
         if subtask.endswith('^'):
             undone = subtask.rstrip('^')
             subtask = strike_text(undone)
-        print("        +) {}".format(subtask))
+        print("        {}".format(num).rjust(8) + ") {}".format(subtask))
     print()
 
 
