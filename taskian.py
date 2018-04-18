@@ -70,7 +70,7 @@ def decide_action(command):
             complete_today()
         else:
             complete_task(int(command_extra) - 1)
-            update_order()
+        update_order()
         smart_display()
 
     elif command_main in ('cg', 'complete-goal'):
@@ -434,12 +434,12 @@ def complete_task(task_num):
 
 def complete_today():
     """Mark all of today's tasks as complete."""
-    to_complete_list = []
+    to_complete = []
     for task in task_data:
         if task[2] == current_date:
-            to_complete_list.append(task[0] - 1)
+            to_complete.append(task[0] - 1)
 
-    for task_num in to_complete_list:
+    for task_num in to_complete[::-1]:
         complete_task(task_num)
 
 
