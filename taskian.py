@@ -553,9 +553,13 @@ def change_date(command_extra):
     """Changes the due date of a task."""
     date_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(date_regex.group(1)) - 1
-    if date_regex.group(2):
-        if date_regex.group(2) == 't':
+    command_date = date_regex.group(2)
+    if command_date:
+        if command_date == 't':
             task_data[task_num][2] = current_date
+        elif command_date == 'tm':
+            new_date = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
+            task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
         else:
             task_data[task_num][2] = date_regex.group(2)
     else:
