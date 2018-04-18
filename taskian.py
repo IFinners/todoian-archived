@@ -651,6 +651,20 @@ def complete_sub(command_extra, data_list):
         sub_num = int(input("  Enter the number of the subitem")) - 1
     data_list[item_num][4][sub_num] = data_list[item_num][4][sub_num] + '^'
 
+    subs_done = True
+    for subitem in data_list[item_num][4]:
+        if not subitem.endswith('^'):
+            subs_done = False
+    if subs_done:
+        print()
+        item_decision = input("  All Subitems Are Complete, Would You Like to "
+                              "Mark the Item as Complete (y/n): ")
+        if item_decision.lower() == 'y':
+            if data_list is task_data:
+                complete_task(item_num)
+            elif data_list is goal_data:
+                complete_goal(item_num)
+
 
 def uncomplete_sub(command_extra, data_list):
     """Unmarks a subtask as complete."""
