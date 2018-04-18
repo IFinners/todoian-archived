@@ -36,6 +36,10 @@ def decide_action(command):
         else:
             smart_display(mini=True)
 
+    elif command_main in ('vg', 'view-goal'):
+        print()
+        view_goal(int(command_extra) - 1, subs=True)
+
     elif command_main in ('a', 't' 'add'):
         add_task(command_regex.group(2))
         update_order()
@@ -196,7 +200,7 @@ def decide_action(command):
 def view_today():
     """Prints all of today's tasks"""
     print()
-    print('  ' + FONT_DICT['green'] + "TODAY'S TASKS" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['green'] + "TODAY'S TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
     for task in task_data:
         if task[2] == current_date:
@@ -213,7 +217,7 @@ def view_today():
 def view_tomorrow():
     """Prints all tasks due tomorrow"""
     print()
-    print('  ' + FONT_DICT['orange'] + "TOMORROW'S TASKS" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['orange'] + "TOMORROW'S TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
@@ -231,7 +235,7 @@ def view_tomorrow():
 def view_overdue():
     """Prints all overdue tasks."""
     print()
-    print('  ' + FONT_DICT['red'] + "OVERDUE TASKS" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['red'] + "OVERDUE TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
     for task in task_data:
         if task[2] < current_date:
@@ -255,7 +259,7 @@ def view_overdue():
 def view_future():
     """Prints all future tasks to the terminal.."""
     print()
-    print('  ' + FONT_DICT['blue'] + "FUTURE TASKS" + FONT_DICT['end'])
+    print('  ' + FONT_DICT['blue'] + "FUTURE TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
     for task in task_data:
         if task[2] > current_date:
@@ -273,31 +277,39 @@ def view_future():
     print()
 
 
+def view_goal(goal_num, subs=False):
+    """Display an individual goal with optional subtask display."""
+    goal = goal_data[goal_num]
+    progress = goal[3]
+    if progress == 'auto':
+        percent_done = auto_percentage(goal[0] - 1) // 5
+    else:
+        percent_done = int(progress) // 5
+        
+    print("    {}".format(goal[0]).rjust(6), end='')
+    if goal[2]:
+        print("| {} [Target: {}]".format(goal[1].upper(), goal[2]))
+    else:
+        print("| {}".format(goal[1].upper()))
+
+    print("        {}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
+            FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']))
+    # Check for Subtasks
+    if goal[4]:
+        if subs:
+            print_sub(int(goal[0] - 1), goal_data)
+
+
 def view_goals(show_subs=False):
-    """Prints all goals"""
+    """Displays all goals"""
     print()
-    print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n')
+    print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n\n')
     if not goal_data:
         print("    No Goals Found")
         return
     for goal in goal_data:
-        progress = goal[3]
-        if progress == 'auto':
-            percent_done = auto_percentage(goal[0] - 1) // 5
-        else:
-            percent_done = int(progress) // 5
-        print("    {}".format(goal[0]).rjust(6), end='')
-        if goal[2]:
-            print("| {} [Target: {}]".format(goal[1].upper(), goal[2]))
-        else:
-            print("| {}".format(goal[1].upper()))
+        view_goal(int(goal[0]) - 1, show_subs)
 
-        print("        {}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
-              FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']))
-        # Check for Subtasks
-        if goal[4]:
-            if show_subs:
-                print_sub(int(goal[0] - 1), goal_data)
     if show_subs:
         print(end='\n')
     else:
@@ -784,7 +796,6 @@ current_date = dt.now().strftime('%Y-%m-%d')
 if goal_data:
     view_goals()
 smart_display(mini=True)
-print('\n')
 
 while True:
     action = input("  ENTER COMMAND ('q' to quit): ")
