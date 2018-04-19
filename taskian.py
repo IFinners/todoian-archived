@@ -51,7 +51,12 @@ def decide_action(command):
 
     elif command_main in ('rm', 'r', 'remove'):
         if command_extra in ("all", 'a'):
-            task_data.clear()
+            check = input("  This Will Delete All Task Data. Are You Sure "
+                          "You Want to Continue? (y/n): ")
+            if check.lower() in ('y', 'yes'):
+                task_data.clear()
+            else:
+                print("  Removal of All Tasks Aborted.")
         else:
             delete_item(int(command_extra) - 1, deleted_tasks)
             update_order()
@@ -59,7 +64,12 @@ def decide_action(command):
 
     elif command_main in ('rg', 'rmg', 'remove-goal'):
         if command_extra in ("all", 'a'):
-            goal_data.clear()
+            check = input("  This Will Delete All Goal Data. Are You Sure "
+                          "You Want to Continue? (y/n): ")
+            if check.lower() in ('y', 'yes'):
+                goal_data.clear()
+            else:
+                print("  Removal of All Goals Aborted.")
         else:
             delete_item(int(command_extra) - 1, deleted_goals)
             update_order()
