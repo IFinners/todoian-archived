@@ -458,15 +458,38 @@ def complete_today():
 
 def comp_list_rep(task_num, repeat):
     """Calculates the next day due in the repeat list and changes the due date."""
-    # Find the name of the day the current due date is set to
+    # Processing of date list repeat
+    if '-' in repeat[0]:
+        try:
+            date_position = repeat.index(task_data[task_num][2])
+            
+        except ValueError:
+            print("  Is The Due Date One of the Listed Repeat Dates? If Not, "
+              "Change It To One And Try Completing It Again.")
+            return
+
+        if date_position == len(repeat) - 1:
+            print("  Reached The End of This Task's Repeat Dates So Marking as Complete.")
+            completed_tasks.append(task_data.pop(task_num))
+            print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+
+        else:
+            task_data[task_num][2] = repeat[date_position + 1]
+            
+            if task_data[task_num][4] != '':
+                reset_subs(task_num)
+            print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+        return
+
+    # Find the name of current due day for processing day name list
     current_due = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
     current_day = dt.strftime(current_due, '%a').lower()
     # Find the next day listed
     try:
         day_position = repeat.index(current_day)
     except ValueError:
-        print("  Is the due date one of the named repeat days? If not, please "
-              "change it to one of the repeat days and try again.")
+        print("  Is The Due Date One of the Listed Repeat Days? If Not, "
+              "Change It To One And Try Completing It Again.")
         return
 
     if day_position == len(repeat) - 1:
@@ -489,7 +512,7 @@ def comp_list_rep(task_num, repeat):
     if task_data[task_num][4] != '':
         reset_subs(task_num)
 
-    print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
+    print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
 
 
 def complete_goal(task_num):
@@ -584,22 +607,22 @@ def change_date(command_extra):
 def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
-    command_step = repeat_regex.group(2)
-    if command_step:
-        if ',' in command_step:
-            step = command_step.split(',')
+    command_rep = repeat_regex.group(2)
+    if command_rep:
+        if ',' in command_rep:
+            repeat = command_rep.split(',')
         else:
-            step = command_step
+            repeat = command_rep
     else:
-        print("  Enter your repeat length in number of days or "
-              "a list of days seperated by a comma (mon,wed,sat): ")
-        unsorted_step = input("  ").lower()
-        if ',' in unsorted_step:
-            step = unsorted_step.split(',')
+        print("  Enter Your Repeat Length Either in Number of Days or as a List "
+              "of Dates or Day Names Seperated by a comma "
+              "e.g. '2018-01-01,2018-02-01' 'mon,wed,sat': ")
+        repeat_list = input("  ").lower()
+        if ',' in repeat_list:
+            repeat = repeat_list.split(',')
         else:
-            step = unsorted_step
-
-    task_data[int(repeat_regex.group(1)) - 1][3] = step
+            repeat = repeat_list
+    task_data[int(repeat_regex.group(1)) - 1][3] = repeat
 
 
 def change_target(command_extra):
