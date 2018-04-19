@@ -295,7 +295,7 @@ def view_goal(goal_num, subs=False):
         percent_done = auto_percentage(goal[0] - 1) // 5
     else:
         percent_done = int(progress) // 5
-        
+
     print("    {}".format(goal[0]).rjust(6), end='')
     if goal[2] and goal[4] and not subs:
         print("| {} [Target: {}]   ...".format(goal[1].upper(), goal[2]))
@@ -375,15 +375,18 @@ def add_task(command_extra):
     opt_repeat = add_regex.group(3)
 
     if opt_date:
-        date = opt_date
+        if verify_date(opt_date):
+            date = opt_date
+        else:
+            return
     else:
         date = current_date
 
     if opt_repeat:
-        if ',' in opt_repeat:
-            repeat = opt_repeat.split(',')
-        else:
+        if verify_repeats(opt_repeat):
             repeat = opt_repeat
+        else:
+            return
     else:
         repeat = ''
     task_data.append([len(task_data) + 1, task, date, repeat, '', ''])
@@ -393,20 +396,20 @@ def add_goal(command_extra):
     """Adds a goal to the goal list."""
     gadd_regex = re.search(r'^"(.*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
     goal = gadd_regex.group(1)
-    opt_date = gadd_regex.group(2)
+    opt_target = gadd_regex.group(2)
     opt_percent = gadd_regex.group(3)
 
-    if opt_date:
-        date = opt_date
+    if opt_target:
+        target = opt_target
     else:
-        date = ''
+        target = ''
 
     if opt_percent:
         percent = int(opt_percent)
     else:
         percent = 'auto'
 
-    goal_data.append([len(goal_data) + 1, goal, date, percent, '', ''])
+    goal_data.append([len(goal_data) + 1, goal, target, percent, '', ''])
 
 
 def delete_item(item_num, cache_list):
@@ -451,7 +454,7 @@ def complete_today():
     for task in task_data:
         if task[2] == current_date:
             to_complete.append(task[0] - 1)
-
+    # Process tasks to be deleted in reverse to keep the task numbers the same
     for task_num in to_complete[::-1]:
         complete_task(task_num)
 
@@ -462,10 +465,10 @@ def comp_list_rep(task_num, repeat):
     if '-' in repeat[0]:
         try:
             date_position = repeat.index(task_data[task_num][2])
-            
+
         except ValueError:
             print("  Is The Due Date One of the Listed Repeat Dates? If Not, "
-              "Change It To One And Try Completing It Again.")
+              "Change It To One.")
             return
 
         if date_position == len(repeat) - 1:
@@ -475,7 +478,7 @@ def comp_list_rep(task_num, repeat):
 
         else:
             task_data[task_num][2] = repeat[date_position + 1]
-            
+
             if task_data[task_num][4] != '':
                 reset_subs(task_num)
             print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
@@ -489,7 +492,7 @@ def comp_list_rep(task_num, repeat):
         day_position = repeat.index(current_day)
     except ValueError:
         print("  Is The Due Date One of the Listed Repeat Days? If Not, "
-              "Change It To One And Try Completing It Again.")
+              "Change It To One.")
         return
 
     if day_position == len(repeat) - 1:
@@ -597,11 +600,13 @@ def change_date(command_extra):
             new_date = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
             task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
         else:
-            task_data[task_num][2] = date_regex.group(2)
+            if verify_date(date_regex.group(2)):
+                task_data[task_num][2]
     else:
         print("  Enter New Due Date For {}: (YYYY-MM-DD)".format(task_data[task_num][1]))
         new_date = input("  ")
-        task_data[task_num][2] = new_date
+        if verify_date(new_date):
+            task_data[task_num][2] = new_date
 
 
 def add_repeat(command_extra):
@@ -609,20 +614,31 @@ def add_repeat(command_extra):
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     command_rep = repeat_regex.group(2)
     if command_rep:
-        if ',' in command_rep:
-            repeat = command_rep.split(',')
+        if command_rep.isnumeric():
+            repeat = int(command_rep)
+
         else:
-            repeat = command_rep
+            if verify_repeats(command_rep):
+                repeat = command_rep
+            else:
+                return
+
     else:
         print("  Enter Your Repeat Length Either in Number of Days or as a List "
               "of Dates or Day Names Seperated by a comma "
               "e.g. '2018-01-01,2018-02-01' 'mon,wed,sat': ")
-        repeat_list = input("  ").lower()
-        if ',' in repeat_list:
-            repeat = repeat_list.split(',')
+        inputted_repeat = input("  ").lower()
+        if inputted_repeat.isnumeric():
+            repeat = int(inputted_repeat)
+
         else:
-            repeat = repeat_list
+            if verify_repeats(inputted_repeat):
+                repeat = inputted_repeat
+            else:
+                return
+
     task_data[int(repeat_regex.group(1)) - 1][3] = repeat
+    print("  Repeat Sucessfully Added to Task.")
 
 
 def change_target(command_extra):
@@ -821,6 +837,45 @@ def show_help():
             print(line, end='')
 
 
+def verify_date(potential_date):
+    """Checks that a date is able to be parsed correctly."""
+    try:
+        dt.strptime(potential_date, '%Y-%m-%d')
+    except ValueError:
+        print("  Date Entered Doesn't Match the Required "
+                   "(YYYY-MM-DD) Format.", end='\n\n')
+        return False
+    return True
+
+
+def verify_repeats(potential_repeat):
+    """Check that a repeat is able to be parsed correctly."""
+    if ',' in potential_repeat:
+        repeat = potential_repeat.split(',')
+        if '-' in repeat[0]:
+            for date in repeat:
+                if not verify_date(date):
+                    print("  ")
+                    return False
+        else:
+            for day_name in repeat:
+                if day_name not in DAY_NAMES:
+                    print("  Not All Day Names Were In the Correct "
+                            "Three Letter Format.", end='\n\n')
+                    return False
+
+    else:
+        if '-' in potential_repeat:
+            if not verify_date(potential_repeat):
+                return
+        elif potential_repeat.isalpha():
+            if not potential_repeat in DAY_NAMES:
+                print("  The Repeat Day Didn't Match "
+                        "The Accepted Values.", end='\n\n')
+                return False
+    return True
+
+
 # A dictionary of ANSI escapse sequences for font effects.
 FONT_DICT = {
    'blue':  '\033[4;94m',
@@ -833,6 +888,8 @@ FONT_DICT = {
    'end':  '\033[0m',
 }
 
+# List of three-letter day names used to check repeat input
+DAY_NAMES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 with open('data.pickle', 'rb') as fp:
     task_data = pickle.load(fp)
@@ -853,6 +910,7 @@ smart_display(mini=True)
 
 while True:
     action = input("  ENTER COMMAND ('q' to quit): ")
+    print()
     if action.lower() == "q":
         break
     else:
@@ -860,11 +918,11 @@ while True:
             decide_action(action)
         except IndexError:
             print()
-            print("  No Item Found at that Position in the list or Cache - "
-                  "Try Again or Enter 'h' or 'help' for Usage Instructions.")
+            print("  No Item Found at That Position in the List or Cache - "
+                  "Try Again or Enter 'h' for Usage Instructions.")
         except ValueError:
             print()
             print("  Did You Forget A Number For The Item/Subitem in Your Command? - "
-                  "Try Again or Enter 'h' or 'help' for Usage Instructions.")
+                  "Try Again or Enter 'h' for Usage Instructions.")
 
         save_changes()
