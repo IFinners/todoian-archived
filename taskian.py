@@ -297,17 +297,20 @@ def view_goal(goal_num, subs=False):
         percent_done = int(progress) // 5
         
     print("    {}".format(goal[0]).rjust(6), end='')
-    if goal[2]:
+    if goal[2] and goal[4] and not subs:
+        print("| {} [Target: {}]   ...".format(goal[1].upper(), goal[2]))
+    elif goal[2] and not goal[4]:
         print("| {} [Target: {}]".format(goal[1].upper(), goal[2]))
+    elif goal[4] and not goal[2] and not subs:
+        print("| {}   ...".format(goal[1].upper()))
     else:
         print("| {}".format(goal[1].upper()))
 
     print("        {}{}{}{}{}".format(FONT_DICT['green no u'], '+' * percent_done,
             FONT_DICT['red no u'], '-' * (20 - percent_done), FONT_DICT['end']))
     # Check for Subtasks
-    if goal[4]:
-        if subs:
-            print_sub(int(goal[0] - 1), goal_data)
+    if goal[4] and subs:
+        print_sub(int(goal[0] - 1), goal_data)
 
 
 def view_goals(show_subs=False):
