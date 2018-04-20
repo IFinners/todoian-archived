@@ -10,6 +10,7 @@ from datetime import timedelta
 
 def decide_action(command):
     """Decides which action the argument requires."""
+    auto_display = True
     command_regex = re.search(r'^([-\w]*)\s?(.*)', command)
     command_main = command_regex.group(1).lower()
     command_extra = command_regex.group(2).lower()
@@ -35,6 +36,7 @@ def decide_action(command):
             view_tag(command_extra)
         else:
             smart_display(mini=True)
+        auto_display = False
 
     elif command_main in ('vg', 'view-goal'):
         print()
@@ -42,12 +44,11 @@ def decide_action(command):
 
     elif command_main in ('a', 't' 'add'):
         add_task(command_regex.group(2))
-        update_order()
-        smart_display()
 
     elif command_main in ('g', 'ag', 'add-goal'):
         add_goal(command_regex.group(2))
         view_goals()
+        auto_display = False
 
     elif command_main in ('rm', 'r', 'remove'):
         if command_extra in ("all", 'a'):
@@ -59,8 +60,6 @@ def decide_action(command):
                 print("  Removal of All Tasks Aborted.")
         else:
             delete_item(int(command_extra) - 1, deleted_tasks)
-            update_order()
-        smart_display()
 
     elif command_main in ('rg', 'rmg', 'remove-goal'):
         if command_extra in ("all", 'a'):
@@ -72,42 +71,40 @@ def decide_action(command):
                 print("  Removal of All Goals Aborted.")
         else:
             delete_item(int(command_extra) - 1, deleted_goals)
-            update_order()
-        view_goals()
+            view_goals()
+            auto_display = False
 
     elif command_main in ('c', 'complete'):
         if 't' in command_extra or 'today' in command_extra:
             complete_today()
         else:
             complete_task(int(command_extra) - 1)
-        update_order()
-        smart_display()
 
     elif command_main in ('cg', 'complete-goal'):
         complete_goal(int(command_extra) - 1)
-        update_order()
         view_goals()
+        auto_display = False
 
     elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2), task_data)
-        smart_display()
 
     elif command_main in ('eg', 'edg', 'edit-goal'):
         edit_desc(command_regex.group(2), goal_data)
         view_goals()
+        auto_display = False
 
     elif command_main in ('cd', 'change-date'):
         change_date(command_extra)
-        update_order()
-        smart_display()
 
     elif command_main in ('ct', 'change-target'):
         change_target(command_regex.group(2))
         view_goals()
+        auto_display = False
 
     elif command_main in ('cp', 'change-percentage'):
         change_percentage(command_extra)
         view_goals()
+        auto_display = False
 
     elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
@@ -117,87 +114,85 @@ def decide_action(command):
 
     elif command_main in ('mv', 'm', 'move'):
         move_item(command_extra, task_data)
-        update_order()
-        smart_display()
 
     elif command_main in ('mvg', 'mg', 'move-goal'):
         move_item(command_extra, goal_data)
-        update_order()
         view_goals()
+        auto_display = False
 
     elif command_main in ('mvs', 'ms', 'move-subtask'):
         move_sub(command_extra, task_data)
-        smart_display()
 
     elif command_main in ('mvsg', 'msg', 'move-subgoal'):
         move_sub(command_extra, goal_data)
         view_goals(show_subs=True)
+        auto_display = False
 
     elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2), task_data)
-        smart_display()
 
     elif command_main in ('sg', 'subgoal'):
         add_sub(command_regex.group(2), goal_data)
         view_goals(show_subs=True)
+        auto_display = False
 
     elif command_main in ('cs', 'comp-subtask'):
         complete_sub(command_extra, task_data)
-        smart_display()
 
     elif command_main in ('us', 'uncomp-subtask'):
         uncomplete_sub(command_extra, task_data)
-        smart_display()
 
     elif command_main in ('usg', 'uncomp-subgoal'):
         uncomplete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
+        auto_display = False
 
     elif command_main in ('rs', 'remove-subtask'):
         delete_sub(command_extra, task_data)
-        smart_display()
 
     elif command_main in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2), task_data)
-        smart_display()
 
     elif command_main in ('csg', 'comp-subgoal'):
         complete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
+        auto_display = False
 
     elif command_main in ('rsg', 'remove-subgoal'):
         delete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
+        auto_display = False
 
     elif command_main in ('esg', 'edit-subgoal'):
         edit_sub(command_regex.group(2), goal_data)
         view_goals(show_subs=True)
+        auto_display = False
 
     elif command_main in ('at', 'add-tag'):
         change_tag(command_regex.group(2), task_data)
         smart_display(mini=True)
+        auto_display = False
 
     elif command_main in ('agt', 'add-goal-tag'):
         change_tag(command_regex.group(2), goal_data)
         smart_display(mini=True)
+        auto_display = False
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
-        smart_display()
 
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_tasks)
-        update_order()
-        smart_display()
 
     elif command.lower() in ('ug', 'undo-goal'):
         undo_action(deleted_goals)
-        update_order()
         view_goals()
+        auto_display = False
 
     elif command.lower() in ('ucg', 'uncheck-goal'):
         undo_action(completed_goals)
         view_goals()
+        auto_display = False
 
     elif command.lower() in ('h', 'help'):
         show_help()
@@ -205,6 +200,7 @@ def decide_action(command):
     else:
         print("  Command Not Recognised - Try Again or "
               "Enter 'h' For Usage Instructions.")
+    return auto_display
 
 
 def view_today():
@@ -384,7 +380,7 @@ def add_task(command_extra):
 
     if opt_repeat:
         if verify_repeats(opt_repeat):
-            repeat = opt_repeat
+            repeat = parse_repeat(opt_repeat)
         else:
             return
     else:
@@ -573,9 +569,9 @@ def edit_desc(command_extra, data_list):
 
 def undo_action(cache_list):
     """Restores the last deleted or completed task to the task list."""
-    if cache_list is (completed_tasks or deleted_tasks):
+    if cache_list is completed_tasks or cache_list is deleted_tasks:
         data_list = task_data
-    elif cache_list is (completed_goals or deleted_goals):
+    elif cache_list is completed_goals or cache_list is deleted_goals:
         data_list = goal_data
 
     # Check for a repeat flag. If found delete matching task before restoring
@@ -614,31 +610,29 @@ def add_repeat(command_extra):
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     command_rep = repeat_regex.group(2)
     if command_rep:
-        if command_rep.isnumeric():
-            repeat = int(command_rep)
-
-        else:
-            if verify_repeats(command_rep):
-                repeat = command_rep
-            else:
-                return
+        parsed_repeat = parse_repeat(command_rep)
+        if verify_repeats(parsed_repeat):
+            repeat = parsed_repeat
 
     else:
-        print("  Enter Your Repeat Length Either in Number of Days or as a List "
-              "of Dates or Day Names Seperated by a comma "
-              "e.g. '2018-01-01,2018-02-01' 'mon,wed,sat': ")
+        print("  Enter Your Repeat e.g. '4' or 'tue or "
+              "mon,wed,sat' or '2018-01-01,2018-02-01': ")
         inputted_repeat = input("  ").lower()
-        if inputted_repeat.isnumeric():
-            repeat = int(inputted_repeat)
-
-        else:
-            if verify_repeats(inputted_repeat):
-                repeat = inputted_repeat
-            else:
-                return
+        parsed_repeat = parse_repeat(inputted_repeat)
+        if verify_repeats(parsed_repeat):
+            repeat = parsed_repeat
 
     task_data[int(repeat_regex.group(1)) - 1][3] = repeat
     print("  Repeat Sucessfully Added to Task.")
+
+
+def parse_repeat(unparsed_rep):
+    """Parses the repeat returning it as a single item or a list as appropriate."""
+    if ',' in unparsed_rep:
+            repeat = unparsed_rep.split(',')
+    else:
+            repeat = unparsed_rep
+    return repeat
 
 
 def change_target(command_extra):
@@ -848,28 +842,27 @@ def verify_date(potential_date):
     return True
 
 
-def verify_repeats(potential_repeat):
+def verify_repeats(parsed_repeat):
     """Check that a repeat is able to be parsed correctly."""
-    if ',' in potential_repeat:
-        repeat = potential_repeat.split(',')
-        if '-' in repeat[0]:
-            for date in repeat:
+    if type(parsed_repeat) is list:
+        if '-' in parsed_repeat[0]:
+            for date in parsed_repeat:
                 if not verify_date(date):
                     print("  ")
                     return False
         else:
-            for day_name in repeat:
+            for day_name in parsed_repeat:
                 if day_name not in DAY_NAMES:
                     print("  Not All Day Names Were In the Correct "
                             "Three Letter Format.", end='\n\n')
                     return False
 
     else:
-        if '-' in potential_repeat:
-            if not verify_date(potential_repeat):
+        if '-' in parsed_repeat:
+            if not verify_date(parsed_repeat):
                 return
-        elif potential_repeat.isalpha():
-            if not potential_repeat in DAY_NAMES:
+        elif parsed_repeat.isalpha():
+            if not parsed_repeat in DAY_NAMES:
                 print("  The Repeat Day Didn't Match "
                         "The Accepted Values.", end='\n\n')
                 return False
@@ -915,7 +908,7 @@ while True:
         break
     else:
         try:
-            decide_action(action)
+            auto_display = decide_action(action)
         except IndexError:
             print()
             print("  No Item Found at That Position in the List or Cache - "
@@ -925,4 +918,7 @@ while True:
             print("  Did You Forget A Number For The Item/Subitem in Your Command? - "
                   "Try Again or Enter 'h' for Usage Instructions.")
 
+        update_order()
         save_changes()
+        if auto_display:
+            smart_display()
