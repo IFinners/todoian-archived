@@ -371,7 +371,10 @@ def add_task(command_extra):
     opt_repeat = add_regex.group(3)
 
     if opt_date:
-        if verify_date(opt_date):
+        if opt_date == 'tm':
+            date_tomorrow = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
+            date = dt.strftime(date_tomorrow, '%Y-%m-%d')
+        elif verify_date(opt_date):
             date = opt_date
         else:
             return
