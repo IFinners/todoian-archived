@@ -33,7 +33,7 @@ def decide_action(command):
             view_goals()
             smart_display()
         elif command_extra.startswith('tg') or command_extra.startswith('tag'):
-            view_tag(command_extra)
+            view_specific_tag(command_extra)
         else:
             smart_display(mini=True)
         auto_display = False
@@ -169,14 +169,26 @@ def decide_action(command):
         auto_display = False
 
     elif command_main in ('at', 'add-tag'):
-        change_tag(command_regex.group(2), task_data)
+        add_tag(command_regex.group(2), task_data)
         smart_display(mini=True)
         auto_display = False
 
     elif command_main in ('agt', 'add-goal-tag'):
-        change_tag(command_regex.group(2), goal_data)
+        add_tag(command_regex.group(2), goal_data)
         smart_display(mini=True)
         auto_display = False
+
+    elif command_main in ('vt', 'view-tags'):
+        view_items_tags(int(command_extra) - 1, task_data)
+
+    elif command_main in ('vgt', 'view-goal-tags'):
+        view_items_tags(int(command_extra) - 1, goal_data)
+
+    elif command_main in ('rt', 'remove-tag'):
+        remove_tag(command_extra, task_data)
+
+    elif command_main in ('rgt', 'remove-goal-tag'):
+        remove_tag(command_extra, goal_data)
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
@@ -339,7 +351,7 @@ def auto_percentage(goal_num):
     return int((done_subs / num_subs) * 100)
 
 
-def view_tag(command_extra):
+def view_specific_tag(command_extra):
     """Display all Goals and Tasks with a specified tag."""
     tag_regex = re.search(r'^(\w*)\s?(\w*)?', command_extra)
     tag = tag_regex.group(2).lower()
@@ -359,6 +371,14 @@ def view_tag(command_extra):
         if tag in task[5]:
             print("    {}| {} ({})".format(task[0], task[1], task[2]))
     print()
+
+
+def view_items_tags(item_num, data_list):
+    """Print the tags associated with the chosen item."""
+    print("  Item '{}' is tagged with: ".format(data_list[item_num][1]), end='')
+    for tag in data_list[item_num][5]:
+        print("" + tag, end=', ')
+    input()
 
 
 def add_task(command_extra):
@@ -388,7 +408,7 @@ def add_task(command_extra):
     else:
         repeat = ''
     print(repeat)
-    task_data.append([len(task_data) + 1, task, date, repeat, '', ''])
+    task_data.append([len(task_data) + 1, task, date, repeat, '', []])
 
 
 def add_goal(command_extra):
@@ -692,7 +712,11 @@ def change_percentage(command_extra):
 
 def remove_value(data_list, task_num, value_position):
     """Remove a value from a Task or Goal."""
-    data_list[task_num][value_position] = ''
+    if value_position == 5:
+        overwrite_value = []
+    else:
+        overwrite_value = ''
+    data_list[task_num][value_position] = overwrite_value
 
 
 def update_order():
@@ -799,18 +823,36 @@ def strike_text(text):
     return striked
 
 
-def change_tag(command_extra, data_list):
-    """Change the tag(s) of a Task or Goal."""
+def add_tag(command_extra, data_list):
+    """Add tag(s) to a Task or Goal."""
     tag_regex = re.search(r'^(\d*)\s?(.*)?', command_extra)
     item_num = int(tag_regex.group(1)) - 1
     command_tag = tag_regex.group(2)
     if command_tag:
-        tag = command_tag.lower().split(',')
+        tags = command_tag.split(',')
+        
     else:
         print("  Enter your tag(s) here. If multiple, seperate them with a comma:")
-        tag = input("  ").lower().split(',')
+        tags = input("  ").split(',')
 
-    data_list[item_num][5] = tag
+    for tag in tags:
+            data_list[item_num][5].append(tag)
+    print("  Tags Successfully Added to Item")
+
+
+def remove_tag(command_extra, data_list):
+    """Remove a tag from an item."""
+    extra_list = command_extra.split(' ')
+    item_num = int(extra_list[0]) - 1
+    to_remove = extra_list[1]
+
+    if len(extra_list) == 2 and extra_list[1].lower() == 'all':
+        remove_value(data_list, item_num, 5)
+        print("  All Tags for This Item Have Been Removed.")
+        return
+
+    data_list[item_num][5].remove(to_remove)
+    print("  Tag Successfully Removed.")
 
 
 def save_changes():
