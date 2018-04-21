@@ -342,9 +342,7 @@ def auto_percentage(goal_num):
 def view_tag(command_extra):
     """Display all Goals and Tasks with a specified tag."""
     tag_regex = re.search(r'^(\w*)\s?(\w*)?', command_extra)
-    print(command_extra)
     tag = tag_regex.group(2).lower()
-    print(tag)
     if not tag:
         tag = input("  Enter the Tag You Wish to View: ").lower()
     print()
@@ -662,6 +660,8 @@ def parse_repeat(unparsed_rep):
     """Parse a repeat returning it as a single item or a list as appropriate."""
     if ',' in unparsed_rep:
         repeat = unparsed_rep.split(',')
+    elif unparsed_rep.isnumeric():
+        repeat = int(unparsed_rep)
     else:
         repeat = unparsed_rep
     return repeat
@@ -884,17 +884,6 @@ def verify_day_name(potential_day):
 
 def verify_repeats(parsed_repeat, due_date=False):
     """Check that a repeat is in the required format."""
-    if parsed_repeat.endswith('m'):
-        num_months = parsed_repeat.strip('m')
-        if not num_months.isnumeric():
-            input("  Monthly Repeat Entered Does Not Match "
-                  "the Required [num]m Format.".upper())
-            return
-
-        if int(due_date[-2:]) > 28:
-            input("  Monthly Repeats With Dates Above 27 "
-                  "Need To be Done Manually.".upper())
-            return
 
     if type(parsed_repeat) is list:
         if '-' in parsed_repeat[0]:
@@ -905,6 +894,21 @@ def verify_repeats(parsed_repeat, due_date=False):
             for day_name in parsed_repeat:
                 if not verify_day_name(day_name):
                     return
+    
+    if type(parsed_repeat) is int:
+        return True
+
+    if parsed_repeat.endswith('m'):
+        num_months = parsed_repeat.strip('m')
+        if not num_months.isnumeric():
+            input("  Monthly Repeat Entered Does Not Match "
+                    "the Required [num]m Format.".upper())
+            return
+
+        if int(due_date[-2:]) > 28:
+            input("  Monthly Repeats With Dates Above 27 "
+                    "Need To be Done Manually.".upper())
+            return
 
     else:
         if '-' in parsed_repeat:
