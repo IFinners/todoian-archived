@@ -10,7 +10,6 @@ from datetime import timedelta
 
 def decide_action(command):
     """Decide on the actions and function calls the command requires."""
-    auto_display = True
     command_regex = re.search(r'^([-\w]*)\s?(.*)', command)
     command_main = command_regex.group(1).lower()
     command_extra = command_regex.group(2).lower()
@@ -36,7 +35,6 @@ def decide_action(command):
             view_specific_tag(command_extra)
         else:
             smart_display(mini=True)
-        auto_display = False
 
     elif command_main in ('vg', 'view-goal'):
         print()
@@ -44,11 +42,13 @@ def decide_action(command):
 
     elif command_main in ('a', 't' 'add'):
         add_task(command_regex.group(2))
+        update_order()
+        smart_display()
 
     elif command_main in ('g', 'ag', 'add-goal'):
         add_goal(command_regex.group(2))
+        update_order()
         view_goals()
-        auto_display = False
 
     elif command_main in ('rm', 'r', 'remove'):
         if command_extra in ("all", 'a'):
@@ -60,6 +60,8 @@ def decide_action(command):
                 print("  Removal of All Tasks Aborted.")
         else:
             delete_item(int(command_extra) - 1, deleted_tasks)
+            update_order()
+            smart_display()
 
     elif command_main in ('rg', 'rmg', 'remove-goal'):
         if command_extra in ("all", 'a'):
@@ -71,40 +73,42 @@ def decide_action(command):
                 print("  Removal of All Goals Aborted.")
         else:
             delete_item(int(command_extra) - 1, deleted_goals)
+            update_order()
             view_goals()
-            auto_display = False
 
     elif command_main in ('c', 'complete'):
         if 't' in command_extra or 'today' in command_extra:
             complete_today()
         else:
             complete_task(int(command_extra) - 1)
+            update_order()
+            smart_display()
 
     elif command_main in ('cg', 'complete-goal'):
         complete_goal(int(command_extra) - 1)
+        update_order()
         view_goals()
-        auto_display = False
 
     elif command_main in ('e', 'ed', 'edit'):
         edit_desc(command_regex.group(2), task_data)
+        smart_display()
 
     elif command_main in ('eg', 'edg', 'edit-goal'):
         edit_desc(command_regex.group(2), goal_data)
         view_goals()
-        auto_display = False
 
     elif command_main in ('cd', 'change-date'):
         change_date(command_extra)
+        update_order()
+        smart_display()
 
     elif command_main in ('ct', 'change-target'):
         change_target(command_regex.group(2))
         view_goals()
-        auto_display = False
 
     elif command_main in ('cp', 'change-percentage'):
         change_percentage(command_extra)
         view_goals()
-        auto_display = False
 
     elif command_main in ('ar', 'add-repeat'):
         add_repeat(command_regex.group(2))
@@ -114,69 +118,69 @@ def decide_action(command):
 
     elif command_main in ('mv', 'm', 'move'):
         move_item(command_extra, task_data)
+        update_order()
+        smart_display()
 
     elif command_main in ('mvg', 'mg', 'move-goal'):
         move_item(command_extra, goal_data)
+        update_order()
         view_goals()
-        auto_display = False
 
     elif command_main in ('mvs', 'ms', 'move-subtask'):
         move_sub(command_extra, task_data)
+        smart_display()
 
     elif command_main in ('mvsg', 'msg', 'move-subgoal'):
         move_sub(command_extra, goal_data)
         view_goals(show_subs=True)
-        auto_display = False
 
     elif command_main in ('s', 'subtask'):
         add_sub(command_regex.group(2), task_data)
+        smart_display()
 
     elif command_main in ('sg', 'subgoal'):
         add_sub(command_regex.group(2), goal_data)
         view_goals(show_subs=True)
-        auto_display = False
 
     elif command_main in ('cs', 'comp-subtask'):
         complete_sub(command_extra, task_data)
+        smart_display()
 
     elif command_main in ('us', 'uncomp-subtask'):
         uncomplete_sub(command_extra, task_data)
+        smart_display()
 
     elif command_main in ('usg', 'uncomp-subgoal'):
         uncomplete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
-        auto_display = False
 
     elif command_main in ('rs', 'remove-subtask'):
         delete_sub(command_extra, task_data)
+        smart_display()
 
     elif command_main in ('es', 'edit-subtask'):
         edit_sub(command_regex.group(2), task_data)
+        smart_display()
 
     elif command_main in ('csg', 'comp-subgoal'):
         complete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
-        auto_display = False
 
     elif command_main in ('rsg', 'remove-subgoal'):
         delete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
-        auto_display = False
 
     elif command_main in ('esg', 'edit-subgoal'):
         edit_sub(command_regex.group(2), goal_data)
         view_goals(show_subs=True)
-        auto_display = False
 
     elif command_main in ('at', 'add-tag'):
         add_tag(command_regex.group(2), task_data)
         smart_display(mini=True)
-        auto_display = False
 
     elif command_main in ('agt', 'add-goal-tag'):
         add_tag(command_regex.group(2), goal_data)
         smart_display(mini=True)
-        auto_display = False
 
     elif command_main in ('vt', 'view-tags'):
         view_items_tags(int(command_extra) - 1, task_data)
@@ -192,19 +196,19 @@ def decide_action(command):
 
     elif command.lower() in ('u', 'undo'):
         undo_action(deleted_tasks)
+        smart_display()
 
     elif command.lower() in ('uc', 'uncheck'):
         undo_action(completed_tasks)
+        smart_display()
 
     elif command.lower() in ('ug', 'undo-goal'):
         undo_action(deleted_goals)
         view_goals()
-        auto_display = False
 
     elif command.lower() in ('ucg', 'uncheck-goal'):
         undo_action(completed_goals)
         view_goals()
-        auto_display = False
 
     elif command.lower() in ('h', 'help'):
         show_help()
@@ -212,7 +216,6 @@ def decide_action(command):
     else:
         print("  Command Not Recognised - Try Again or "
               "Enter 'h' For Usage Instructions.")
-    return auto_display
 
 
 def view_today():
@@ -407,7 +410,6 @@ def add_task(command_extra):
             return
     else:
         repeat = ''
-    print(repeat)
     task_data.append([len(task_data) + 1, task, date, repeat, '', []])
 
 
@@ -1001,11 +1003,8 @@ while True:
         break
     else:
         try:
-            auto_display = decide_action(action)
-            update_order()
+            decide_action(action)
             save_changes()
-            if auto_display:
-                smart_display()
 
         except IndexError:
             print()
