@@ -383,7 +383,7 @@ def add_task(command_extra):
 
     if opt_repeat:
         parsed_repeat = parse_repeat(opt_repeat)
-        if verify_repeats(parsed_repeat):
+        if verify_repeats(parsed_repeat, date):
             repeat = parsed_repeat
         else:
             return
@@ -433,6 +433,10 @@ def complete_task(task_num):
         data_copy = task_data[task_num][:]
         completed_tasks.append(data_copy)
 
+        if repeat.endswith('m'):
+            complete_monthly(task_num, repeat)
+            return
+
         if type(repeat) is list:
             if '-' in repeat[0]:
                 date_list_comp(task_num, repeat)
@@ -462,6 +466,20 @@ def complete_today():
     # Process tasks to be deleted in reverse to keep the task numbers the same
     for task_num in to_complete[::-1]:
         complete_task(task_num)
+
+
+def complete_monthly(task_num, repeat):
+    """Changes a task's due date by a specified amount of months."""
+    num_months = int(repeat.rstrip('m'))
+    current_due_list = task_data[task_num][2].split('-')
+    current_month = int(current_due_list[1])
+    new_month = str(current_month + num_months % 12).zfill(2)
+    current_due_list[1] = new_month
+    task_data[task_num][2] = '-'.join(current_due_list)
+
+    if task_data[task_num][4] != '':
+        reset_subs(task_num)
+    print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
 
 
 def date_list_comp(task_num, repeat):
@@ -617,30 +635,33 @@ def change_date(command_extra):
 def add_repeat(command_extra):
     """Flags a task with the repeat flag so it auto-renews on completion."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
+    task_num = int(repeat_regex.group(1)) - 1
     command_rep = repeat_regex.group(2)
+    due_date = task_data[task_num][2]
+
     if command_rep:
         parsed_repeat = parse_repeat(command_rep)
-        if verify_repeats(parsed_repeat):
-            repeat = parsed_repeat
+        if not verify_repeats(parsed_repeat, due_date):
+            return
 
     else:
-        print("  Enter Your Repeat e.g. '4' or 'tue or "
+        print("  Enter Your Repeat e.g. '4' or 'tue' or '2m' or"
               "mon,wed,sat' or '2018-01-01,2018-02-01': ")
         inputted_repeat = input("  ").lower()
         parsed_repeat = parse_repeat(inputted_repeat)
-        if verify_repeats(parsed_repeat):
-            repeat = parsed_repeat
+        if not verify_repeats(parsed_repeat, due_date):
+            return
 
-    task_data[int(repeat_regex.group(1)) - 1][3] = repeat
+    task_data[task_num][3] = parsed_repeat
     print("  Repeat Sucessfully Added to Task.")
 
 
 def parse_repeat(unparsed_rep):
     """Parses the repeat returning it as a single item or a list as appropriate."""
     if ',' in unparsed_rep:
-            repeat = unparsed_rep.split(',')
+        repeat = unparsed_rep.split(',')
     else:
-            repeat = unparsed_rep
+        repeat = unparsed_rep
     return repeat
 
 
@@ -860,8 +881,19 @@ def verify_day_name(potential_day):
         return True
 
 
-def verify_repeats(parsed_repeat):
+def verify_repeats(parsed_repeat, due_date=False):
     """Check that a repeat is able to be parsed correctly."""
+    if parsed_repeat.endswith('m'):
+        num_months = parsed_repeat.strip('m')
+        if not num_months.isnumeric():
+            print("  Monthly Repeat Entered Does Not Match "
+                  "the Required [num]m Format.")
+            return
+
+        if int(due_date[-2:]) > 28:
+            print("  Monthly Repeats With Dates Above 27 Need To be Done Manually.")
+            return
+
     if type(parsed_repeat) is list:
         if '-' in parsed_repeat[0]:
             for date in parsed_repeat:
