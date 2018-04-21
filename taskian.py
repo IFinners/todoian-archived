@@ -433,25 +433,27 @@ def complete_task(task_num):
         data_copy = task_data[task_num][:]
         completed_tasks.append(data_copy)
 
-        if repeat.endswith('m'):
-            complete_monthly(task_num, repeat)
-            return
+        if type(repeat) is int:
+            old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
+            new_date = old_date + timedelta(int(task_data[task_num][3]))
+            task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
 
-        if type(repeat) is list:
+            # Check for Subtasks and reset them if found
+            if task_data[task_num][4] != '':
+                reset_subs(task_num)
+
+        elif type(repeat) is list:
             if '-' in repeat[0]:
                 date_list_comp(task_num, repeat)
             else:
                 name_list_comp(task_num, repeat)
             return
 
-        # Process number of day repeats
-        old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
-        new_date = old_date + timedelta(int(task_data[task_num][3]))
-        task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
+        elif repeat.endswith('m'):
+            complete_monthly(task_num, repeat)
+            return
 
-        # Need to remove [Done] from completed subtasks
-        if task_data[task_num][4] != '':
-            reset_subs(task_num)
+
     else:
         completed_tasks.append(task_data.pop(task_num))
     print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
