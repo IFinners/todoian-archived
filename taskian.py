@@ -954,16 +954,19 @@ while True:
     else:
         try:
             auto_display = decide_action(action)
+            update_order()
+            save_changes()
+            if auto_display:
+                smart_display()
+
         except IndexError:
             print()
             input("  No Item Found at That Position in the List or Cache - "
                   "Try Again or Enter 'h' for Usage Instructions.")
+            print()
+
         except ValueError:
             print()
             input("  Did You Forget A Number For The Item/Subitem in Your Command? - "
                   "Try Again or Enter 'h' for Usage Instructions.")
-
-        update_order()
-        save_changes()
-        if auto_display:
-            smart_display()
+            print()
