@@ -672,8 +672,7 @@ def change_target(command_extra):
     if target_regex.group(2):
         new_target = target_regex.group(2)
     else:
-        print("  Enter New Target For {}:".format(goal_data[goal_num][1]))
-        new_target = input("  ")
+        new_target = input("  Enter New Target For {}:".format(goal_data[goal_num][1]))
     goal_data[goal_num][2] = new_target
 
 
@@ -684,9 +683,8 @@ def change_percentage(command_extra):
     if percentage_regex.group(2):
         new_percentage = percentage_regex.group(2)
     else:
-        print("  Enter New Completion Percentage {}:".format(goal_data[goal_num][1]))
-        new_percentage = input("  ")
-
+        new_percentage = input("  Enter New Completion Percentage {}: "
+                               .format(goal_data[goal_num][1]))
     goal_data[goal_num][3] = new_percentage
 
 
@@ -713,8 +711,7 @@ def add_sub(command_extra, data_list):
     item_num = int(sub_regex.group(1)) - 1
     subtask = sub_regex.group(2)
     if not subtask:
-        print("  Enter Subitem:")
-        subtask = input("  ")
+        subtask = input("  Enter Subitem: ")
     if data_list[item_num][4] == '':
         data_list[item_num][4] = [subtask]
     else:
@@ -866,8 +863,9 @@ def verify_date(potential_date):
     try:
         dt.strptime(potential_date, '%Y-%m-%d')
     except ValueError:
-        print("  Date Entered Doesn't Match the Required "
-                   "(YYYY-MM-DD) Format.", end='\n\n')
+        input("  Date Entered Doesn't Match the Required "
+                   "(YYYY-MM-DD) Format.".upper())
+        print()
         return
 
     return True
@@ -876,7 +874,8 @@ def verify_date(potential_date):
 def verify_day_name(potential_day):
     """Verifies that the day names in the repeat are correct."""
     if potential_day not in DAY_NAMES:
-        print("  Not All Day Names Were In the Correct Format.", end='\n\n')
+        input("  Not All Day Names Were In the Correct Format.".upper())
+        print()
     else:
         return True
 
@@ -886,12 +885,13 @@ def verify_repeats(parsed_repeat, due_date=False):
     if parsed_repeat.endswith('m'):
         num_months = parsed_repeat.strip('m')
         if not num_months.isnumeric():
-            print("  Monthly Repeat Entered Does Not Match "
-                  "the Required [num]m Format.")
+            input("  Monthly Repeat Entered Does Not Match "
+                  "the Required [num]m Format.".upper())
             return
 
         if int(due_date[-2:]) > 28:
-            print("  Monthly Repeats With Dates Above 27 Need To be Done Manually.")
+            input("  Monthly Repeats With Dates Above 27 "
+                  "Need To be Done Manually.".upper())
             return
 
     if type(parsed_repeat) is list:
@@ -956,11 +956,11 @@ while True:
             auto_display = decide_action(action)
         except IndexError:
             print()
-            print("  No Item Found at That Position in the List or Cache - "
+            input("  No Item Found at That Position in the List or Cache - "
                   "Try Again or Enter 'h' for Usage Instructions.")
         except ValueError:
             print()
-            print("  Did You Forget A Number For The Item/Subitem in Your Command? - "
+            input("  Did You Forget A Number For The Item/Subitem in Your Command? - "
                   "Try Again or Enter 'h' for Usage Instructions.")
 
         update_order()
