@@ -382,12 +382,14 @@ def add_task(command_extra):
         date = current_date
 
     if opt_repeat:
-        if verify_repeats(opt_repeat):
-            repeat = parse_repeat(opt_repeat)
+        parsed_repeat = parse_repeat(opt_repeat)
+        if verify_repeats(parsed_repeat):
+            repeat = parsed_repeat
         else:
             return
     else:
         repeat = ''
+    print(repeat)
     task_data.append([len(task_data) + 1, task, date, repeat, '', ''])
 
 
@@ -432,9 +434,13 @@ def complete_task(task_num):
         completed_tasks.append(data_copy)
 
         if type(repeat) is list:
-            comp_list_rep(task_num, repeat)
+            if '-' in repeat[0]:
+                date_list_comp(task_num, repeat)
+            else:
+                name_list_comp(task_num, repeat)
             return
 
+        # Process number of day repeats
         old_date = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
         new_date = old_date + timedelta(int(task_data[task_num][3]))
         task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
@@ -458,31 +464,31 @@ def complete_today():
         complete_task(task_num)
 
 
-def comp_list_rep(task_num, repeat):
-    """Calculates the next day due in the repeat list and changes the due date."""
-    # Processing of date list repeat
-    if '-' in repeat[0]:
-        try:
-            date_position = repeat.index(task_data[task_num][2])
+def date_list_comp(task_num, repeat):
+    """Changes a task's due date to the next date in the repeat list."""
+    try:
+        date_position = repeat.index(task_data[task_num][2])
 
-        except ValueError:
-            print("  Is The Due Date One of the Listed Repeat Dates? If Not, "
-              "Change It To One.")
-            return
-
-        if date_position == len(repeat) - 1:
-            print("  Reached The End of This Task's Repeat Dates So Marking as Complete.")
-            completed_tasks.append(task_data.pop(task_num))
-            print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
-
-        else:
-            task_data[task_num][2] = repeat[date_position + 1]
-
-            if task_data[task_num][4] != '':
-                reset_subs(task_num)
-            print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+    except ValueError:
+        print("  Is The Due Date One of the Listed Repeat Dates? If Not, "
+            "Change It To One.")
         return
 
+    if date_position == len(repeat) - 1:
+        print("  Reached The End of This Task's Repeat Dates So Marking as Complete.")
+        completed_tasks.append(task_data.pop(task_num))
+        print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+
+    else:
+        task_data[task_num][2] = repeat[date_position + 1]
+
+        if task_data[task_num][4] != '':
+            reset_subs(task_num)
+        print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+
+
+def name_list_comp(task_num, repeat):
+    """Changes a task's due date to the next day named in the repeat list."""
     # Find the name of current due day for processing day name list
     current_due = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
     current_day = dt.strftime(current_due, '%a').lower()
@@ -841,8 +847,17 @@ def verify_date(potential_date):
     except ValueError:
         print("  Date Entered Doesn't Match the Required "
                    "(YYYY-MM-DD) Format.", end='\n\n')
-        return False
+        return
+
     return True
+
+
+def verify_day_name(potential_day):
+    """Verifies that the day names in the repeat are correct."""
+    if potential_day not in DAY_NAMES:
+        print("  Not All Day Names Were In the Correct Format.", end='\n\n')
+    else:
+        return True
 
 
 def verify_repeats(parsed_repeat):
@@ -851,24 +866,19 @@ def verify_repeats(parsed_repeat):
         if '-' in parsed_repeat[0]:
             for date in parsed_repeat:
                 if not verify_date(date):
-                    print("  ")
-                    return False
+                    return
         else:
             for day_name in parsed_repeat:
-                if day_name not in DAY_NAMES:
-                    print("  Not All Day Names Were In the Correct "
-                            "Three Letter Format.", end='\n\n')
-                    return False
+                if not verify_day_name(day_name):
+                    return
 
     else:
         if '-' in parsed_repeat:
             if not verify_date(parsed_repeat):
                 return
         elif parsed_repeat.isalpha():
-            if not parsed_repeat in DAY_NAMES:
-                print("  The Repeat Day Didn't Match "
-                        "The Accepted Values.", end='\n\n')
-                return False
+            if not verify_day_name(parsed_repeat):
+                return
     return True
 
 
