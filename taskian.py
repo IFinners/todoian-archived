@@ -9,7 +9,7 @@ from datetime import timedelta
 
 
 def decide_action(command):
-    """Decides which action the argument requires."""
+    """Decide on the actions and function calls the command requires."""
     auto_display = True
     command_regex = re.search(r'^([-\w]*)\s?(.*)', command)
     command_main = command_regex.group(1).lower()
@@ -204,7 +204,7 @@ def decide_action(command):
 
 
 def view_today():
-    """Prints all of today's tasks"""
+    """Print all tasks due today."""
     print()
     print('  ' + FONT_DICT['green'] + "TODAY'S TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
@@ -221,7 +221,7 @@ def view_today():
 
 
 def view_tomorrow():
-    """Prints all tasks due tomorrow"""
+    """Print all tasks that are due tomorrow."""
     print()
     print('  ' + FONT_DICT['orange'] + "TOMORROW'S TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
@@ -239,7 +239,7 @@ def view_tomorrow():
 
 
 def view_overdue():
-    """Prints all overdue tasks."""
+    """Print all tasks that are overdue."""
     print()
     print('  ' + FONT_DICT['red'] + "OVERDUE TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
@@ -263,7 +263,7 @@ def view_overdue():
 
 
 def view_future():
-    """Prints all future tasks to the terminal.."""
+    """Print all tasks with due dates beyond tomorrow"""
     print()
     print('  ' + FONT_DICT['blue'] + "FUTURE TASKS" + FONT_DICT['end'], end='\n\n')
     empty = True
@@ -310,7 +310,7 @@ def view_goal(goal_num, subs=False):
 
 
 def view_goals(show_subs=False):
-    """Displays all goals"""
+    """Display all goals either with or without subgoals."""
     print()
     print('  ' + FONT_DICT['magenta'] + "GOALS" + FONT_DICT['end'], end='\n\n')
     if not goal_data:
@@ -340,7 +340,7 @@ def auto_percentage(goal_num):
 
 
 def view_tag(command_extra):
-    """Displays all Goals and Tasks with a specified tag."""
+    """Display all Goals and Tasks with a specified tag."""
     tag_regex = re.search(r'^(\w*)\s?(\w*)?', command_extra)
     print(command_extra)
     tag = tag_regex.group(2).lower()
@@ -364,7 +364,7 @@ def view_tag(command_extra):
 
 
 def add_task(command_extra):
-    """Adds system argument task to the task list."""
+    """Add a new task to the task list."""
     add_regex = re.search(r'^"(.*)"\s?(\S*)?\s?(.*)?', command_extra)
     task = add_regex.group(1)
     opt_date = add_regex.group(2)
@@ -394,7 +394,7 @@ def add_task(command_extra):
 
 
 def add_goal(command_extra):
-    """Adds a goal to the goal list."""
+    """Add a new goal to the goal list."""
     gadd_regex = re.search(r'^"(.*)"\s?"?([^"]*)?"?\s?(.*)?', command_extra)
     goal = gadd_regex.group(1)
     opt_target = gadd_regex.group(2)
@@ -414,7 +414,7 @@ def add_goal(command_extra):
 
 
 def delete_item(item_num, cache_list):
-    """Removes an item from the task or goal list."""
+    """Remove an item from the task or goal list."""
     if cache_list is deleted_tasks:
         data_list = task_data
         undo_com = "'undo' or 'u'"
@@ -426,7 +426,7 @@ def delete_item(item_num, cache_list):
 
 
 def complete_task(task_num):
-    """Marks a task as complete."""
+    """Mark a task as complete."""
     repeat = task_data[task_num][3]
     if repeat != '':
         # Append copy of data so non-repeat date can be restored using 'Uncheck'
@@ -469,7 +469,7 @@ def complete_today():
 
 
 def complete_monthly(task_num, repeat):
-    """Changes a task's due date by a specified amount of months."""
+    """Change a task's due date by a specified amount of months."""
     num_months = int(repeat.rstrip('m'))
     current_due_list = task_data[task_num][2].split('-')
     current_month = int(current_due_list[1])
@@ -483,7 +483,7 @@ def complete_monthly(task_num, repeat):
 
 
 def date_list_comp(task_num, repeat):
-    """Changes a task's due date to the next date in the repeat list."""
+    """Change a task's due date to the next date in the repeat list."""
     try:
         date_position = repeat.index(task_data[task_num][2])
 
@@ -506,7 +506,7 @@ def date_list_comp(task_num, repeat):
 
 
 def name_list_comp(task_num, repeat):
-    """Changes a task's due date to the next day named in the repeat list."""
+    """Change a task's due date to the next day named in the repeat list."""
     # Find the name of current due day for processing day name list
     current_due = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
     current_day = dt.strftime(current_due, '%a').lower()
@@ -542,13 +542,13 @@ def name_list_comp(task_num, repeat):
 
 
 def complete_goal(task_num):
-    """Moves a goal to the completed cache."""
+    """Move a goal to the completed cache."""
     completed_goals.append(goal_data.pop(task_num))
     print("  Goal marked as complete. Enter 'uncheck-goal' or 'ucg' to restore.")
 
 
 def move_item(command_extra, data_list):
-    """Change a goals position in the list."""
+    """Change a goal's position in the goal list."""
     move_regex = re.search(r'^(\d*)\s?(\d*)?', command_extra)
     item_num = int(move_regex.group(1)) - 1
     if move_regex.group(2):
@@ -561,7 +561,7 @@ def move_item(command_extra, data_list):
 
 
 def move_sub(command_extra, data_list):
-    """Change a subitem's position in the list."""
+    """Change a subitem's position in the subitem list."""
     moves_regex = re.search(r'^(\d*)\s(\d*)\s?(\d*)?', command_extra)
     item_num = int(moves_regex.group(1)) - 1
     subitem_num = int(moves_regex.group(2)) - 1
@@ -575,13 +575,13 @@ def move_sub(command_extra, data_list):
 
 
 def reset_subs(task_num):
-    """Resets subtasks to non-completed status"""
+    """Reset a tasks subtasks to a non-completed state"""
     for num, subtask in enumerate(task_data[task_num][4]):
             task_data[task_num][4][num] = subtask.rstrip('^')
 
 
 def edit_desc(command_extra, data_list):
-    """Updates a task's description."""
+    """Update a task's description."""
     edit_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     item_num = int(edit_regex.group(1)) - 1
 
@@ -595,7 +595,7 @@ def edit_desc(command_extra, data_list):
 
 
 def undo_action(cache_list):
-    """Restores the last deleted or completed task to the task list."""
+    """Restore the last deleted or completed Task or Goal to the task list."""
     if cache_list is completed_tasks or cache_list is deleted_tasks:
         data_list = task_data
     elif cache_list is completed_goals or cache_list is deleted_goals:
@@ -612,7 +612,7 @@ def undo_action(cache_list):
 
 
 def change_date(command_extra):
-    """Changes the due date of a task."""
+    """Change the due date of a task."""
     date_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(date_regex.group(1)) - 1
     command_date = date_regex.group(2)
@@ -633,7 +633,7 @@ def change_date(command_extra):
 
 
 def add_repeat(command_extra):
-    """Flags a task with the repeat flag so it auto-renews on completion."""
+    """Add a repeat to a task."""
     repeat_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     task_num = int(repeat_regex.group(1)) - 1
     command_rep = repeat_regex.group(2)
@@ -657,7 +657,7 @@ def add_repeat(command_extra):
 
 
 def parse_repeat(unparsed_rep):
-    """Parses the repeat returning it as a single item or a list as appropriate."""
+    """Parse a repeat returning it as a single item or a list as appropriate."""
     if ',' in unparsed_rep:
         repeat = unparsed_rep.split(',')
     else:
@@ -666,7 +666,7 @@ def parse_repeat(unparsed_rep):
 
 
 def change_target(command_extra):
-    """Changes the target date of a goal."""
+    """Change the target date of a goal."""
     target_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     goal_num = int(target_regex.group(1)) - 1
     if target_regex.group(2):
@@ -677,7 +677,7 @@ def change_target(command_extra):
 
 
 def change_percentage(command_extra):
-    """Changes the completion percentage of a goal."""
+    """Change the completion percentage of a goal."""
     percentage_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     goal_num = int(percentage_regex.group(1)) - 1
     if percentage_regex.group(2):
@@ -689,12 +689,12 @@ def change_percentage(command_extra):
 
 
 def remove_value(data_list, task_num, value_position):
-    """Removes a value from an item."""
+    """Remove a value from a Task or Goal."""
     data_list[task_num][value_position] = ''
 
 
 def update_order():
-    """Updates the numbering of the tasks and goals."""
+    """Update the numbering of the Tasks and Goals."""
     task_data.sort(key=lambda x: x[2])
     count = 1
     for task in task_data:
@@ -706,7 +706,7 @@ def update_order():
 
 
 def add_sub(command_extra, data_list):
-    """Adds subtask to a task or goal."""
+    """Add a Subtask to a Task or Goal."""
     sub_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     item_num = int(sub_regex.group(1)) - 1
     subtask = sub_regex.group(2)
@@ -719,7 +719,7 @@ def add_sub(command_extra, data_list):
 
 
 def complete_sub(command_extra, data_list):
-    """Marks a subtask as complete."""
+    """Mark a Subtask as complete."""
     subcom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     item_num = int(subcom_regex.group(1)) - 1
     if subcom_regex.group(2):
@@ -744,7 +744,7 @@ def complete_sub(command_extra, data_list):
 
 
 def uncomplete_sub(command_extra, data_list):
-    """Unmarks a subtask as complete."""
+    """Remove the 'completed' identifier from a Subtask."""
     subuncom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     item_num = int(subuncom_regex.group(1)) - 1
     if subuncom_regex.group(2):
@@ -755,7 +755,7 @@ def uncomplete_sub(command_extra, data_list):
 
 
 def delete_sub(command_extra, data_list):
-    """Removes a subtask."""
+    """Remove a Subtask."""
     delcom_regex = re.search(r'^(\w*)\s?(.*)?', command_extra)
     item_num = int(delcom_regex.group(1)) - 1
     if delcom_regex.group(2):
@@ -766,7 +766,7 @@ def delete_sub(command_extra, data_list):
 
 
 def edit_sub(command_extra, data_list):
-    """Updates a subtask's description."""
+    """Change a Subtask's description."""
     edits_regex = re.search(r'^(\d*)\s(\d*)\s?(.*)?', command_extra)
     item_num = int(edits_regex.group(1)) - 1
     sub_num = int(edits_regex.group(2)) - 1
@@ -780,7 +780,7 @@ def edit_sub(command_extra, data_list):
 
 
 def print_sub(item_num, data_list):
-    """Prints a tasks subtasks."""
+    """Print a Task's Subtasks."""
     for num, subtask in enumerate(data_list[item_num][4], 1):
         if subtask.endswith('^'):
             undone = subtask.rstrip('^')
@@ -790,7 +790,7 @@ def print_sub(item_num, data_list):
 
 
 def strike_text(text):
-    """Adds a strikethtough effect to text."""
+    """Add a strikethtough effect to text."""
     striked = ''
     for char in text:
         striked = striked + char + '\u0336'
@@ -798,7 +798,7 @@ def strike_text(text):
 
 
 def change_tag(command_extra, data_list):
-    """Updates the tag(s) of a Task or Goal."""
+    """Change the tag(s) of a Task or Goal."""
     tag_regex = re.search(r'^(\d*)\s?(.*)?', command_extra)
     item_num = int(tag_regex.group(1)) - 1
     command_tag = tag_regex.group(2)
@@ -812,14 +812,14 @@ def change_tag(command_extra, data_list):
 
 
 def save_changes():
-    """Writes changes to file."""
+    """Write changes to data file."""
     with open ('data.pickle', 'wb') as fp:
         pickle.dump(task_data, fp)
         pickle.dump(goal_data, fp)
 
 
 def smart_display(mini=False):
-    """Checks if list has tasks before dispaying it."""
+    """Check if a list has Tasks in it before displaying it."""
     if not task_data:
         print()
         print(FONT_DICT['red no u'] + "    NO TASKS TO DISPLAY" + FONT_DICT['end'])
@@ -851,7 +851,7 @@ def smart_display(mini=False):
 
 
 def show_help():
-    """Prints Taskian usage instructions to the screen."""
+    """Print Taskian usage instructions to the screen."""
     print()
     with open('help.txt') as f:
         for line in f.readlines():
@@ -859,7 +859,7 @@ def show_help():
 
 
 def verify_date(potential_date):
-    """Checks that a date is able to be parsed correctly."""
+    """Check that a date is able to be parsed correctly."""
     try:
         dt.strptime(potential_date, '%Y-%m-%d')
     except ValueError:
@@ -872,7 +872,7 @@ def verify_date(potential_date):
 
 
 def verify_day_name(potential_day):
-    """Verifies that the day names in the repeat are correct."""
+    """Check that a day name is formatted correctly."""
     if potential_day not in DAY_NAMES:
         input("  Not All Day Names Were In the Correct Format.".upper())
         print()
@@ -881,7 +881,7 @@ def verify_day_name(potential_day):
 
 
 def verify_repeats(parsed_repeat, due_date=False):
-    """Check that a repeat is able to be parsed correctly."""
+    """Check that a repeat is in the required format."""
     if parsed_repeat.endswith('m'):
         num_months = parsed_repeat.strip('m')
         if not num_months.isnumeric():
