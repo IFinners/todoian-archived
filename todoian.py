@@ -50,7 +50,7 @@ def decide_action(command):
         update_order()
         view_goals()
 
-    elif command_main in ('rm', 'r', 'remove'):
+    elif command_main in ('d', 'del', 'delete'):
         if command_extra in ("all", 'a'):
             check = input("  This Will Delete All Task Data. Are You Sure "
                           "You Want to Continue? (y/n): ")
@@ -63,7 +63,7 @@ def decide_action(command):
             update_order()
             smart_display()
 
-    elif command_main in ('rg', 'rmg', 'remove-goal'):
+    elif command_main in ('dg', 'delg', 'delete-goal'):
         if command_extra in ("all", 'a'):
             check = input("  This Will Delete All Goal Data. Are You Sure "
                           "You Want to Continue? (y/n): ")
@@ -126,11 +126,11 @@ def decide_action(command):
         update_order()
         view_goals()
 
-    elif command_main in ('mvs', 'ms', 'move-subtask'):
+    elif command_main in ('ms', 'move-subtask'):
         move_sub(command_extra, task_data)
         smart_display()
 
-    elif command_main in ('mvsg', 'msg', 'move-subgoal'):
+    elif command_main in ('msg', 'move-subgoal'):
         move_sub(command_extra, goal_data)
         view_goals(show_subs=True)
 
@@ -154,7 +154,7 @@ def decide_action(command):
         uncomplete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
 
-    elif command_main in ('rs', 'remove-subtask'):
+    elif command_main in ('ds', 'delete-subtask'):
         delete_sub(command_extra, task_data)
         smart_display()
 
@@ -162,11 +162,11 @@ def decide_action(command):
         edit_sub(command_regex.group(2), task_data)
         smart_display()
 
-    elif command_main in ('csg', 'comp-subgoal'):
+    elif command_main in ('csg', 'complete-subgoal'):
         complete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
 
-    elif command_main in ('rsg', 'remove-subgoal'):
+    elif command_main in ('dsg', 'delete-subgoal'):
         delete_sub(command_extra, goal_data)
         view_goals(show_subs=True)
 
@@ -699,7 +699,7 @@ def add_goal(command_extra):
     else:
         percent = 'auto'
 
-    goal_data.append([len(goal_data) + 1, goal, target, percent, '', ''])
+    goal_data.append([len(goal_data) + 1, goal, target, percent, [], []])
 
 
 def complete_goal(task_num):
@@ -805,7 +805,7 @@ def delete_sub(command_extra, data_list):
     if delcom_regex.group(2):
         sub_num = int(delcom_regex.group(2)) - 1
     else:
-        sub_num = input("  Enter the number of the subitem")
+        sub_num = int(input("  Enter the number of the subitem: "))
     del data_list[item_num][4][sub_num]
 
 
@@ -959,11 +959,9 @@ def strike_text(text):
 
 
 def show_help():
-    """Print Taskian usage instructions to the screen."""
+    """Print link to Todoianusage instructions to the screen."""
     print()
-    with open('help.txt') as f:
-        for line in f.readlines():
-            print(line, end='')
+    print("  Full Documentation can be found at: {}")
 
 
 def save_changes():
