@@ -577,7 +577,7 @@ def change_date(command_extra):
             task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
         else:
             if verify_date(date_regex.group(2)):
-                task_data[task_num][2]
+                task_data[task_num][2] = date_regex.group(2)
     else:
         print("  Enter New Due Date For {}: (YYYY-MM-DD)".format(task_data[task_num][1]))
         new_date = input("  ")
