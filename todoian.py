@@ -655,10 +655,10 @@ def verify_repeats(parsed_repeat, due_date=False):
                 if not verify_day_name(day_name):
                     return
     
-    if type(parsed_repeat) is int:
+    elif type(parsed_repeat) is int:
         return True
 
-    if parsed_repeat.endswith('m'):
+    elif parsed_repeat.endswith('m'):
         num_months = parsed_repeat.strip('m')
         if not num_months.isnumeric():
             input("  Monthly Repeat Entered Does Not Match "
