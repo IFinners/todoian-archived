@@ -13,7 +13,7 @@ The main display command is the list (ls, list) command which unadorned prints a
 View all tasks with due dates of today with (t, today):
 ::
 
-   list t
+   list today
 
 All overdue tasks with (o, overdue):
 ::
@@ -62,7 +62,7 @@ A single Goal and all of its Subgoals can be viewed with (vg, view-goal):
 
    view-goal goal-number
 
-All tags associated with a Task or Goal can be viewed with (vt, view-tags) for tasks and (vgt, view-goal-tags) for Goals:
+All tags associated with a Task or Goal can be viewed with (vt, view-tags) for Tasks and (vgt, view-goal-tags) for Goals:
 ::
 
    view-tags task-number
