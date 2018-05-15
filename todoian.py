@@ -961,7 +961,7 @@ def strike_text(text):
 def show_help():
     """Print link to Todoianusage instructions to the screen."""
     print()
-    print("  Full Documentation can be found at: {}")
+    print("  Full Documentation can be found at: https://todoian.readthedocs.io/en/latest/")
 
 
 def save_changes():

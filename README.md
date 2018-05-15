@@ -1,6 +1,6 @@
 # Todoian
 
-## A Command Line Task Manager
+## A Task Manager With A Simple Design And Suprising Depth
 
 Todoian lacks a GUI but doesn't lack much in terms of features with simple, intuitive commands allowing you to take control of not only your Tasks but your longer term Goals as well.
 
@@ -23,9 +23,9 @@ Todoian lacks a GUI but doesn't lack much in terms of features with simple, intu
 Todoian is written only in Python 3 and Python 3 is all you'll need to run it, no non-standard modules are used.
 
 ## Installation Instructions
-Simply download the [Todoian Repository](InsertLinkHere) to any folder you like and run the todoian file from the Command Line using Python 3.
+Simply download the [Todoian Repository](https://github.com/IFinners/Todoian) to any folder you like and run the todoian file from the Command Line using Python 3.
 
 
 ## Usage Instructions
 
-For usage instruction please view the documentation [here](LinkComingSoon).
+For usage instruction please view the documentation [here](https://todoian.readthedocs.io/en/latest/).

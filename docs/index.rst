@@ -29,7 +29,7 @@ of not only your Tasks but your longer term Goals as well. Some of the more nota
 
 Installation and Getting Started
 ================================
-Simply download the `Todoian Repository <LinkNotYetAdded/>`_ to any folder you like and run the todoian.py file from the Command Line using 
+Simply download the `Todoian Repository <https://github.com/IFinners/Todoian/>`_ to any folder you like and run the todoian.py file from the Command Line using 
 ::
 
    python3 todoian.py
