@@ -13,11 +13,10 @@ Adding
 
    add ["New Task Description"] {Date} {Repeat}
    
-Notes:
 
 - The Task description must be surrounded by double-quotes.
-- The date must be written in one of the formats mentioned in the :ref:`change-date` section.
-- The repeat must be one of the options discussed in the :ref:`add-repeat` section.
+- The date must be in one of the formats detailed in the :ref:`change-date` section.
+- The repeat must be one of the options detailed in the :ref:`add-repeat` section.
 
 
 Completing
