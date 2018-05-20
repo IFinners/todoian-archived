@@ -428,6 +428,8 @@ def add_task(command_extra):
         if opt_date == 'tm':
             date_tomorrow = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
             date = dt.strftime(date_tomorrow, '%Y-%m-%d')
+        elif opt_date in DAY_NAMES:
+            date = named_day_date(opt_date)
         elif verify_date(opt_date):
             date = opt_date
         else:
@@ -444,6 +446,19 @@ def add_task(command_extra):
     else:
         repeat = ''
     task_data.append([len(task_data) + 1, task, date, repeat, [], []])
+
+
+def named_day_date(day_name):
+    """Returns the date of the next occurence of a named day."""
+    test_date = dt.now()
+
+    while True:
+        next_day = test_date + timedelta(1)
+        name_test = dt.strftime(next_day, '%a').lower()
+        if name_test == day_name:
+            return dt.strftime(next_day, '%Y-%m-%d')
+        else:
+            test_date = next_day
 
 
 def complete_task(task_num):
@@ -575,6 +590,8 @@ def change_date(command_extra):
         elif command_date == 'tm':
             new_date = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
             task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
+        elif command_date in DAY_NAMES:
+            task_data[task_num][2] = named_day_date(command_date.lower())
         else:
             if verify_date(date_regex.group(2)):
                 task_data[task_num][2] = date_regex.group(2)
