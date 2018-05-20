@@ -424,18 +424,17 @@ def add_task(command_extra):
     opt_date = add_regex.group(2)
     opt_repeat = add_regex.group(3)
 
-    if opt_date:
-        if opt_date == 'tm':
-            date_tomorrow = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
-            date = dt.strftime(date_tomorrow, '%Y-%m-%d')
-        elif opt_date in DAY_NAMES:
-            date = named_day_date(opt_date)
-        elif verify_date(opt_date):
-            date = opt_date
-        else:
-            return
-    else:
+    if opt_date in ('t', ''):
         date = current_date
+    elif opt_date == 'tm':
+        date_tomorrow = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
+        date = dt.strftime(date_tomorrow, '%Y-%m-%d')
+    elif opt_date in DAY_NAMES:
+        date = named_day_date(opt_date)
+    elif verify_date(opt_date):
+        date = opt_date
+    else:
+        return
 
     if opt_repeat:
         parsed_repeat = parse_repeat(opt_repeat)
