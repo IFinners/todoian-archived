@@ -24,6 +24,9 @@ Todoian is written only in Python 3 and Python 3 is all you'll need to run it, n
 
 ## Installation Instructions
 Simply download the [Todoian Repository](https://github.com/IFinners/Todoian) to any folder you like and run the todoian file from the Command Line using Python 3.
+```
+python3 todoian.py
+```
 
 
 ## Usage Instructions

@@ -1,3 +1,5 @@
+.. _subitem:
+
 ================
 Subitem Commands
 ================
@@ -12,6 +14,7 @@ Adding
 ::
 
    subtask task-number [subitem description]
+
 
 Completing
 ==========
@@ -44,7 +47,6 @@ Unlike the deletion of a Task or Goal, the deletion of a Subitem is permanent.
 
    delete task-number [subtask-number]
    
-
 
 Moving
 ======

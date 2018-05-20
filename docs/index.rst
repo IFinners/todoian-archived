@@ -42,7 +42,7 @@ Usage Instructions
 
 .. toctree::
    :maxdepth: 2
- 
+
    general
    tasks
    goals

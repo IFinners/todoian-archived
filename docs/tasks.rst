@@ -2,7 +2,8 @@
 Task Commands
 =============
 
-Ordered by their due dates and customisable with repeats, tags and Subitems(see Subitem Commands for Details) Tasks are what Task Managers... well... manage and here is a breakdown of how to do just that.
+Ordered by their due dates and customisable with repeats, tags and Subitems(see :ref:`Subitem Commands <subitem>` for details) 
+Tasks are what Task Managers... well... manage and here is a breakdown of how to do just that.
 
 Adding
 ======
@@ -12,8 +13,11 @@ Adding
 
    add ["New Task Description"] {Date} {Repeat}
    
-Note the Task description must be surrounded by double-quotes, the date must be written as YYYY-MM-DD 
-and the repeat must be one of the options discussed in the 'Adding a Repeat to a Task' section of this document.
+Notes:
+
+- The Task description must be surrounded by double-quotes.
+- The date must be written in one of the formats mentioned in the :ref:`change-date` section.
+- The repeat must be one of the options discussed in the :ref:`add-repeat` section.
 
 
 Completing
@@ -62,6 +66,7 @@ Both of these commands will work for the restoration of multiple items
 Moving
 ======
 (m, mv, move)
+
 Tasks are sorted by their due dates, and whilst this cannot be changed, the order of Tasks within their date brackets 
 can with the following command:
 ::
@@ -74,6 +79,7 @@ Where the move number is the position to move the Task to in the list.
 Editing a Description
 =====================
 (e, ed, edit)
+
 Editing a Task's description can be done through the following command:
 ::
 
@@ -82,20 +88,30 @@ Editing a Task's description can be done through the following command:
 Note that there is no need to encase the Task description in quotation marks unlike with the add command.
 
 
+.. _change-date:
+
 Changing a Due Date
 ===================
 (cd, change-date)
+
 Changing a Task's due date can be done through the prompt that follows the following command:
 ::
 
    change-date task-number [due date]
 
-Note that the correct date format to use is YYYY-MM-DD e.g. 2018-01-25 for the 25th of January.
+The date can be entered as:
 
+- A date formatted like YYYY-MM-DD e.g. 2018-01-25:
+- An abbreviated day name (e.g. wed) would set the date to the next Wednesday from today's date.
+- 't', which sets the due date to today, or 'tm' which sets the due date to tomorrow's date.
+
+
+.. _add-repeat:
 
 Adding a Repeat
 ===============
 (ar, add-repeat)
+
 Repeats allow Tasks to be automatically re-added to the Task list upon completion. The repeat can be set with the following command:
 ::
 
@@ -133,6 +149,7 @@ This Task would repeat every 3 months on the day definied by its due date at the
 Removing a Repeat
 =================
 (rr, remove-repeat)
+
 A repeat can be overwritten by using the add repeat command detailed above, or removed entirely with the following:
 ::
 
@@ -142,6 +159,7 @@ A repeat can be overwritten by using the add repeat command detailed above, or r
 Adding a Tag
 ============
 (at, add-tag)
+
 Tagging a Task with a keyword means it can be displayed with other Tasks and goals (see the Display Command section of this guide) that share that tag. To add tag(s) to a Task, enter the following command:
 ::
 
@@ -151,6 +169,7 @@ Tagging a Task with a keyword means it can be displayed with other Tasks and goa
 Removing a Tag
 ==============
 (rt, remove-tag)
+
 A specific tag can be removed using it as the keyword in the command to follow, or all tags for that Task 
 can be removed by using the keyword 'all':
 ::
@@ -161,6 +180,7 @@ can be removed by using the keyword 'all':
 Viewing a tag
 =============
 (vt, view-tags)
+
 To view a list of all of a Tasks tags use the following command:
 ::
    
