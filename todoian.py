@@ -77,8 +77,10 @@ def decide_action(command):
             view_goals()
 
     elif command_main in ('c', 'complete'):
-        if 't' in command_extra or 'today' in command_extra:
+        if command_extra in ('t', 'today'):
             complete_today()
+        elif command_extra in ('o', 'overdue'):
+            complete_overdue()
         else:
             complete_task(int(command_extra) - 1)
         update_order()
@@ -244,7 +246,7 @@ def view_tomorrow():
     empty = True
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
-             - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
+             - current_datetime).days) == 1:
             print("    {}".format(task[0]).rjust(6) + "| {}".format(task[1]))
             # Check for Subtasks
             if task[4]:
@@ -262,7 +264,7 @@ def view_overdue():
     empty = True
     for task in task_data:
         if task[2] < current_date:
-            over = ((dt.strptime(current_date, '%Y-%m-%d')
+            over = ((current_datetime
                      - dt.strptime(task[2], '%Y-%m-%d')).days)
             if over == 1:
                 print("    {}".format(task[0]).rjust(6)
@@ -287,7 +289,7 @@ def view_future():
     for task in task_data:
         if task[2] > current_date:
             until = ((dt.strptime(task[2], '%Y-%m-%d')
-                          - dt.strptime(current_date, '%Y-%m-%d')).days)
+                          - current_datetime).days)
             if until > 1:
                 print("    {}".format(task[0]).rjust(6)
                       + "| {} [Due in {} Days]".format(task[1], until))
@@ -367,11 +369,11 @@ def smart_display(mini=False):
 
     for task in task_data:
         if ((dt.strptime(task[2], '%Y-%m-%d')
-            - dt.strptime(current_date, '%Y-%m-%d')).days) == 1:
+            - current_datetime).days) == 1:
             view_tomorrow()
             break
     if ((dt.strptime(task_data[-1][2], '%Y-%m-%d')
-        - dt.strptime(current_date, '%Y-%m-%d')).days) > 1:
+        - current_datetime).days) > 1:
         view_future()
 
 
@@ -427,7 +429,7 @@ def add_task(command_extra):
     if opt_date in ('t', ''):
         date = current_date
     elif opt_date == 'tm':
-        date_tomorrow = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
+        date_tomorrow = current_datetime + timedelta(1)
         date = dt.strftime(date_tomorrow, '%Y-%m-%d')
     elif opt_date in DAY_NAMES:
         date = named_day_date(opt_date)
@@ -460,7 +462,7 @@ def named_day_date(day_name):
             test_date = next_day
 
 
-def complete_task(task_num):
+def complete_task(task_num, print_msg=True):
     """Mark a task as complete."""
     repeat = task_data[task_num][3]
     if repeat != '':
@@ -491,7 +493,8 @@ def complete_task(task_num):
 
     else:
         completed_tasks.append(task_data.pop(task_num))
-    print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
+    if print_msg:
+        print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
 
 
 def complete_today():
@@ -502,7 +505,26 @@ def complete_today():
             to_complete.append(task[0] - 1)
     # Process tasks to be deleted in reverse to keep the task numbers the same
     for task_num in to_complete[::-1]:
-        complete_task(task_num)
+        complete_task(task_num, print_msg=False)
+    print("  Today's Tasks marked as complete.")
+
+
+def complete_overdue():
+    """Mark all overdue tasks as complete."""
+    # Use yesterday as < today hangs on a task due today due to the hour component
+    while dt.strptime(task_data[0][2], '%Y-%m-%d') <= current_datetime - timedelta(1):
+        to_complete = []
+        for task in task_data:
+            if dt.strptime(task[2], '%Y-%m-%d') < current_datetime:
+                to_complete.append(task[0] - 1)
+            else:
+                break
+
+        for task_num in to_complete[::-1]:
+            complete_task(task_num, print_msg=False)
+        update_order()
+
+    print("  Overdue Tasks marked as complete.")
 
 
 def complete_monthly(task_num, repeat):
@@ -587,7 +609,7 @@ def change_date(command_extra):
         if command_date == 't':
             task_data[task_num][2] = current_date
         elif command_date == 'tm':
-            new_date = dt.strptime(current_date, '%Y-%m-%d') + timedelta(1)
+            new_date = current_datetime + timedelta(1)
             task_data[task_num][2] = dt.strftime(new_date, '%Y-%m-%d')
         elif command_date in DAY_NAMES:
             task_data[task_num][2] = named_day_date(command_date.lower())
@@ -1012,7 +1034,8 @@ completed_tasks = []
 deleted_goals = []
 completed_goals = []
 
-current_date = dt.now().strftime('%Y-%m-%d')
+current_datetime = dt.now()
+current_date = current_datetime.strftime('%Y-%m-%d')
 
 # Initial display
 if goal_data:
@@ -1020,6 +1043,7 @@ if goal_data:
 smart_display(mini=True)
 
 while True:
+    print()
     action = input("  ENTER COMMAND ('q' to quit): ")
     print()
     if action.lower() == "q":

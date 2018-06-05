@@ -29,10 +29,17 @@ it is added back onto the Task list with the appropriate new information.
 
    complete task-number
 
-All Tasks with due dates equal to the current date by writing 't' or 'today' instead of a Task number:
+All Tasks with due dates equal to the current date are marked as complete by writing 't' or 'today' instead of a Task number:
 ::
 
-   complete today   
+   complete today
+
+All Tasks with due dates earlier than the current date are marked as complete by writing 'o' or 'overdue' instead of a Task number:
+::
+
+   complete overdue
+
+Note that this completes overdue tasks with repeats until their due date is no longer overdue.  
 
 
 Deleting
