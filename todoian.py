@@ -481,18 +481,19 @@ def complete_task(task_num, print_msg=True):
 
         elif type(repeat) is list:
             if '-' in repeat[0]:
-                date_list_comp(task_num, repeat)
+                date_list_comp(task_num, repeat, print_msg)
             else:
-                name_list_comp(task_num, repeat)
+                name_list_comp(task_num, repeat, print_msg)
             return
 
         elif repeat.endswith('m'):
-            complete_monthly(task_num, repeat)
+            complete_monthly(task_num, repeat, print_msg)
             return
 
 
     else:
         completed_tasks.append(task_data.pop(task_num))
+
     if print_msg:
         print("  Task marked as complete. Enter 'uncheck' or 'uc' to restore.")
 
@@ -511,8 +512,7 @@ def complete_today():
 
 def complete_overdue():
     """Mark all overdue tasks as complete."""
-    # Use yesterday as < today hangs on a task due today due to the hour component
-    while dt.strptime(task_data[0][2], '%Y-%m-%d') <= current_datetime - timedelta(1):
+    while True:
         to_complete = []
         for task in task_data:
             if dt.strptime(task[2], '%Y-%m-%d') < current_datetime:
@@ -524,10 +524,12 @@ def complete_overdue():
             complete_task(task_num, print_msg=False)
         update_order()
 
-    print("  Overdue Tasks marked as complete.")
+        if dt.strptime(task_data[0][2], '%Y-%m-%d') > current_datetime - timedelta(1):
+            print("  Overdue Tasks marked as complete.")
+            return
 
 
-def complete_monthly(task_num, repeat):
+def complete_monthly(task_num, repeat, print_msg=True):
     """Change a task's due date by a specified amount of months."""
     num_months = int(repeat.rstrip('m'))
     current_due_list = task_data[task_num][2].split('-')
@@ -538,10 +540,12 @@ def complete_monthly(task_num, repeat):
 
     if task_data[task_num][4] != '':
         reset_subs(task_num)
-    print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+
+    if print_msg:
+        print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
 
 
-def date_list_comp(task_num, repeat):
+def date_list_comp(task_num, repeat, print_msg=True):
     """Change a task's due date to the next date in the repeat list."""
     try:
         date_position = repeat.index(task_data[task_num][2])
@@ -561,10 +565,12 @@ def date_list_comp(task_num, repeat):
 
         if task_data[task_num][4] != '':
             reset_subs(task_num)
-        print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+
+        if print_msg:
+            print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
 
 
-def name_list_comp(task_num, repeat):
+def name_list_comp(task_num, repeat, print_msg=True):
     """Change a task's due date to the next day named in the repeat list."""
     # Find the name of current due day for processing day name list
     current_due = dt.strptime(task_data[task_num][2], '%Y-%m-%d')
@@ -597,7 +603,8 @@ def name_list_comp(task_num, repeat):
     if task_data[task_num][4] != '':
         reset_subs(task_num)
 
-    print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
+    if print_msg:
+        print("  Task Marked as Complete. Enter 'uncheck' or 'uc' to Restore.")
 
 
 def change_date(command_extra):
@@ -692,7 +699,7 @@ def verify_repeats(parsed_repeat, due_date=False):
             for day_name in parsed_repeat:
                 if not verify_day_name(day_name):
                     return
-    
+
     elif type(parsed_repeat) is int:
         return True
 
@@ -940,7 +947,7 @@ def add_tag(command_extra, data_list):
     command_tag = tag_regex.group(2)
     if command_tag:
         tags = command_tag.split(',')
-        
+
     else:
         print("  Enter your tag(s) here. If multiple, seperate them with a comma:")
         tags = input("  ").split(',')
@@ -1034,7 +1041,8 @@ completed_tasks = []
 deleted_goals = []
 completed_goals = []
 
-current_datetime = dt.now()
+# Formatted then stripped to set unwanted hours etc to blank for comparisons
+current_datetime = dt.strptime(dt.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
 current_date = current_datetime.strftime('%Y-%m-%d')
 
 # Initial display
