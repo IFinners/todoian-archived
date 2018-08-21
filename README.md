@@ -2,7 +2,7 @@
 
 ## A Task Manager With A Simple Design And Surprising Depth
 
-Todoian lacks a GUI but doesn't lack much in terms of features with simple, intuitive commands allowing you to take control of not only your Tasks but your longer term Goals as well.
+This is the outdated, archived version of Todoian. Please download the up to date version from the non-archived repository instead.
 
 ### Some of the more notable features include:
 
